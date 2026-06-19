@@ -1,0 +1,23 @@
+services:
+  db:
+    image: postgres:16
+    container_name: codexray-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "0813"
+      POSTGRES_DB: codexray
+    ports:
+      - "5432:5432"
+    volumes:
+      - codexray-db-data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:7
+    container_name: codexray-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+volumes:
+  codexray-db-data:
