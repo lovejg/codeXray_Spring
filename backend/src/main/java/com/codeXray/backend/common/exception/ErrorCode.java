@@ -18,7 +18,11 @@ public enum ErrorCode {
 
     // ── 인증/계정 ──
     EMAIL_DUPLICATED(HttpStatus.CONFLICT, "이미 사용 중인 이메일입니다."),
-    NICKNAME_DUPLICATED(HttpStatus.CONFLICT, "이미 사용 중인 닉네임입니다.");
+    NICKNAME_DUPLICATED(HttpStatus.CONFLICT, "이미 사용 중인 닉네임입니다."),
+
+    // ── 이메일 인증 토큰 ──
+    INVALID_TOKEN(HttpStatus.BAD_REQUEST, "유효하지 않은 인증 토큰입니다."),
+    EXPIRED_TOKEN(HttpStatus.BAD_REQUEST, "만료된 인증 토큰입니다. 인증 메일을 다시 요청해 주세요.");
 
     private final HttpStatus status;
     private final String message;

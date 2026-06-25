@@ -2,6 +2,7 @@ package com.codeXray.backend.auth.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
@@ -29,4 +30,15 @@ public class EmailVerificationToken {
     private LocalDateTime expiresAt;
 
     private LocalDateTime usedAt;
+
+    @Builder
+    public EmailVerificationToken(String token, Long userId, LocalDateTime expiresAt) {
+        this.token = token;
+        this.userId = userId;
+        this.expiresAt = expiresAt;
+    }
+
+    public void markAsUsed() {
+        this.usedAt = LocalDateTime.now();
+    }
 }

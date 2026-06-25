@@ -63,4 +63,8 @@ public class User {
         this.role = role;
         this.provider = provider;
     }
+
+    public void verifyEmail() {
+        this.emailVerified = true;
+    }
 }

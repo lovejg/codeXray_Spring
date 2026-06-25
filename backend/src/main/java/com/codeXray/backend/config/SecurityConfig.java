@@ -24,10 +24,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // TODO: "/api/auth/**" 경로는 인증 없이 허용
-                        //   힌트: .requestMatchers(...).permitAll()
-                        // TODO: 그 외 나머지 모든 요청은 인증 필요
-                        //   힌트: .anyRequest().authenticated()
+                        .requestMatchers("/api/auth/**").permitAll()  // 가입/로그인 등은 열어둠
+                        .anyRequest().authenticated()                 // 그 외는 인증 필요
                 );
         return http.build();
     }

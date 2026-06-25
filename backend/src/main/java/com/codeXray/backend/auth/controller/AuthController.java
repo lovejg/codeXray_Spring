@@ -1,6 +1,7 @@
 package com.codeXray.backend.auth.controller;
 
 import com.codeXray.backend.auth.dto.RegisterRequest;
+import com.codeXray.backend.auth.dto.VerifyEmailRequest;
 import com.codeXray.backend.auth.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,5 +23,11 @@ public class AuthController {
     public ResponseEntity<Void> register(@Valid @RequestBody RegisterRequest req) {
         authService.register(req);
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @PostMapping("/verify-email")
+    public ResponseEntity<Void> verifyEmail(@Valid @RequestBody VerifyEmailRequest req) {
+        authService.verifyEmail(req.token());
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }
