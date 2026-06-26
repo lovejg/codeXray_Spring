@@ -22,7 +22,15 @@ public enum ErrorCode {
 
     // ── 이메일 인증 토큰 ──
     INVALID_TOKEN(HttpStatus.BAD_REQUEST, "유효하지 않은 인증 토큰입니다."),
-    EXPIRED_TOKEN(HttpStatus.BAD_REQUEST, "만료된 인증 토큰입니다. 인증 메일을 다시 요청해 주세요.");
+    EXPIRED_TOKEN(HttpStatus.BAD_REQUEST, "만료된 인증 토큰입니다. 인증 메일을 다시 요청해 주세요."),
+    ALREADY_VERIFIED(HttpStatus.CONFLICT, "이미 인증된 계정입니다."),
+
+    // ── 로그인 ──
+    LOGIN_FAILED(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 올바르지 않습니다."),
+    EMAIL_NOT_VERIFIED(HttpStatus.FORBIDDEN, "이메일 인증이 필요합니다. 인증 메일을 확인해 주세요."),
+
+    // ── 토큰 재발급 ──
+    INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 리프레시 토큰입니다. 다시 로그인해 주세요.");
 
     private final HttpStatus status;
     private final String message;
