@@ -4,6 +4,7 @@ import com.codeXray.backend.auth.cookie.RefreshCookieUtil;
 import com.codeXray.backend.auth.dto.*;
 import com.codeXray.backend.auth.jwt.TokenPair;
 import com.codeXray.backend.auth.service.AuthService;
+import com.codeXray.backend.auth.service.OAuthService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final OAuthService oAuthService;
     private final RefreshCookieUtil refreshCookieUtil;
 
     @PostMapping("/register")
@@ -60,6 +62,14 @@ public class AuthController {
         ResponseCookie cookie = refreshCookieUtil.clear();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
         return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @PostMapping("/oauth/google")
+    public ResponseEntity<LoginResponse> googleLogin(@Valid @RequestBody OAuthLoginRequest req, HttpServletResponse response) {
+        TokenPair tokenPair = oAuthService.loginWithGoogle(req.code());
+        ResponseCookie cookie = refreshCookieUtil.create(tokenPair.refreshToken());
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+        return ResponseEntity.ok(new LoginResponse(tokenPair.accessToken()));
     }
 
     @PostMapping("/resend-verification")

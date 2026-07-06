@@ -56,15 +56,24 @@ public class User {
 
 
     @Builder
-    public User(String email, String password, String nickname, UserRole role, AuthProvider provider) {
+    public User(String email, String password, String nickname, UserRole role, AuthProvider provider, String providerId) {
         this.email = email;
         this.password = password;
         this.nickname = nickname;
         this.role = role;
         this.provider = provider;
+        this.providerId = providerId;
     }
 
     public void verifyEmail() {
         this.emailVerified = true;
+    }
+
+    public void changeNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+    public void changePassword(String password) {
+        this.password = password;
     }
 }
