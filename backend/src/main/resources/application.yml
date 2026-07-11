@@ -13,17 +13,17 @@ spring:
 
   jpa:
     hibernate:
-      # 개발 단계: 엔티티 기준으로 테이블 자동 생성/수정. (Stage 4 시드 들어갈 때 Flyway로 전환 예정)
-      ddl-auto: update
+      # Flyway가 스키마를 소유. Hibernate는 엔티티↔스키마 일치 여부만 검증(validate).
+      ddl-auto: validate
     properties:
       hibernate:
         format_sql: true
     open-in-view: false   # OSIV 끔 — 지연로딩을 서비스 계층 트랜잭션 안에서만 허용(권장)
     show-sql: true
 
-  # Flyway는 아직 사용 안 함(스키마는 ddl-auto가 담당). 문제 시드 단계에서 켤 예정.
+  # Flyway: db/migration의 V1, V2... 를 순서대로 적용하고 flyway_schema_history에 기록.
   flyway:
-    enabled: false
+    enabled: true
 
   data:
     redis:

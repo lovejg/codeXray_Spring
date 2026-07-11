@@ -8,9 +8,10 @@ group = 'com.codeXray'
 version = '0.0.1-SNAPSHOT'
 
 java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
-	}
+	// toolchain 대신 실행 JDK(WSL의 JDK 21)를 그대로 사용.
+	// toolchain 방식은 IDEA의 WSL 프로젝트 import를 깨뜨리는 알려진 버그가 있음(IDEA-367587).
+	sourceCompatibility = JavaVersion.VERSION_21
+	targetCompatibility = JavaVersion.VERSION_21
 }
 
 repositories {
@@ -38,8 +39,15 @@ dependencies {
 	runtimeOnly  'io.jsonwebtoken:jjwt-jackson:0.12.6'
 
 	// Flyway — DB 마이그레이션 + 시드 (Prisma migrate 대응)
-	implementation 'org.flywaydb:flyway-core'
+	// Boot 4는 자동설정이 모듈로 쪼개져 flyway-core 만으론 auto-config가 안 붙음 → starter 필요
+	implementation 'org.springframework.boot:spring-boot-starter-flyway'
 	implementation 'org.flywaydb:flyway-database-postgresql'
+
+	// QueryDSL — 타입 안전 동적 쿼리 (OpenFeign 포크: 원조 정체로 유지보수 이관, Jakarta/Hibernate7 대응)
+	implementation 'io.github.openfeign.querydsl:querydsl-jpa:7.3.0'
+	annotationProcessor 'io.github.openfeign.querydsl:querydsl-apt:7.3.0:jpa'  // Q클래스 생성기
+	annotationProcessor 'jakarta.annotation:jakarta.annotation-api'
+	annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
 
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'

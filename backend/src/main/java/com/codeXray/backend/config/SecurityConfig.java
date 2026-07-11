@@ -4,6 +4,7 @@ import com.codeXray.backend.auth.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -32,6 +33,7 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()  // 가입/로그인 등은 열어둠
+                        .requestMatchers(HttpMethod.GET, "/api/problems/**").permitAll() // 문제 조회는 공개
                         .anyRequest().authenticated()                 // 그 외는 인증 필요
                 )
                 // 인증 안 된 채 보호 경로 접근 시 401(JSON) 반환
