@@ -33,7 +33,11 @@ public enum ErrorCode {
     PASSWORD_MISMATCH(HttpStatus.BAD_REQUEST, "현재 비밀번호가 일치하지 않습니다."),
 
     // ── 토큰 재발급 ──
-    INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 리프레시 토큰입니다. 다시 로그인해 주세요.");
+    INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 리프레시 토큰입니다. 다시 로그인해 주세요."),
+
+    // ── 풀이 ──
+    SOLUTION_NOT_FOUND(HttpStatus.NOT_FOUND, "풀이를 찾을 수 없습니다."),
+    PROBLEM_NOT_FOUND(HttpStatus.NOT_FOUND, "문제를 찾을 수 없습니다.");
 
     private final HttpStatus status;
     private final String message;
