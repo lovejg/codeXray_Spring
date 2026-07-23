@@ -37,7 +37,29 @@ public enum ErrorCode {
 
     // ── 풀이 ──
     SOLUTION_NOT_FOUND(HttpStatus.NOT_FOUND, "풀이를 찾을 수 없습니다."),
-    PROBLEM_NOT_FOUND(HttpStatus.NOT_FOUND, "문제를 찾을 수 없습니다.");
+    PROBLEM_NOT_FOUND(HttpStatus.NOT_FOUND, "문제를 찾을 수 없습니다."),
+
+    // ── 노트 ──
+    NOTE_NOT_FOUND(HttpStatus.NOT_FOUND, "노트를 찾을 수 없습니다."),
+
+    // ── 커뮤니티 ──
+    POST_NOT_FOUND(HttpStatus.NOT_FOUND, "게시글을 찾을 수 없습니다."),
+    COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "댓글을 찾을 수 없습니다."),
+    PRIVATE_POST(HttpStatus.FORBIDDEN, "비공개 게시글입니다."),
+
+    // ── 커뮤니티 투표 ──
+    POST_NOT_VOTABLE(HttpStatus.BAD_REQUEST, "이 글에는 추천/비추천을 할 수 없습니다."),
+    CANNOT_VOTE_OWN_POST(HttpStatus.BAD_REQUEST, "본인 글에는 투표할 수 없습니다."),
+
+    // ── 커뮤니티 신고/운영 ──
+    REPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "신고를 찾을 수 없습니다."),
+    ALREADY_REPORTED(HttpStatus.BAD_REQUEST, "이미 신고한 게시글입니다."),
+    CANNOT_REPORT_OWN_POST(HttpStatus.BAD_REQUEST, "본인 글은 신고할 수 없습니다."),
+    NOT_SUGGESTION_POST(HttpStatus.BAD_REQUEST, "건의사항 글에만 가능한 작업입니다."),
+
+    // ── AI ──
+    AI_RATE_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "AI 분석은 하루 한도를 초과했습니다. 내일 다시 시도해 주세요."),
+    AI_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "AI 기능을 현재 사용할 수 없습니다.");
 
     private final HttpStatus status;
     private final String message;

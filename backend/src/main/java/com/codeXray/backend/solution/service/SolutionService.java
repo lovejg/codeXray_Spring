@@ -2,7 +2,10 @@ package com.codeXray.backend.solution.service;
 
 import com.codeXray.backend.common.exception.BusinessException;
 import com.codeXray.backend.common.exception.ErrorCode;
+import com.codeXray.backend.notification.entity.NotificationType;
+import com.codeXray.backend.notification.service.NotificationService;
 import com.codeXray.backend.problem.entity.Problem;
+import com.codeXray.backend.problem.entity.Tier;
 import com.codeXray.backend.problem.repository.ProblemRepository;
 import com.codeXray.backend.solution.dto.MemoResponse;
 import com.codeXray.backend.solution.dto.SolutionResponse;
@@ -14,7 +17,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +29,7 @@ public class SolutionService {
     private final SolutionRepository solutionRepository;
     private final MemoRepository memoRepository;
     private final ProblemRepository problemRepository;
+    private final NotificationService notificationService;
 
     // 내 풀이 전체 조회
     public List<SolutionResponse> findMyAll(Long userId, Boolean starred) {
@@ -42,24 +48,40 @@ public class SolutionService {
     // 풀이 등록(upsert: 이미 있으면 코드 갱신, 없으면 새로 생성)
     @Transactional
     public SolutionResponse create(Long userId, Long problemId, String code, String language) {
-        Solution solution = solutionRepository.findByUserIdAndProblemId(userId, problemId)
-                // 이미 풀이가 있으면 update
-                .map(existing -> {
-                    existing.updateCode(code, language);
-                    return existing;
-                // 없으면 생성
-                }).orElseGet(() -> {
-                    Problem problem = problemRepository.findById(problemId).orElseThrow(() -> new BusinessException(ErrorCode.PROBLEM_NOT_FOUND));
-                    return solutionRepository.save(
-                            Solution.builder()
-                                    .userId(userId)
-                                    .problem(problem)
-                                    .code(code)
-                                    .language(language)
-                                    .build()
-                    );
-                });
+        var existing = solutionRepository.findByUserIdAndProblemId(userId, problemId);
+        if (existing.isPresent()) {
+            Solution solution = existing.get();
+            solution.updateCode(code, language);
+            return SolutionResponse.from(solution);
+        }
+
+        // 신규 등록
+        Problem problem = problemRepository.findById(problemId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PROBLEM_NOT_FOUND));
+        Solution solution = solutionRepository.save(
+                Solution.builder().userId(userId).problem(problem).code(code).language(language).build());
+
+        maybeNotifyTierUp(userId, problem); // 새 풀이 + 해당 티어 패밀리 첫 해결이면 알림
         return SolutionResponse.from(solution);
+    }
+
+    // 이 문제의 티어 패밀리(예: GOLD)를 처음 푼 것이면 TIER_UP 알림
+    private void maybeNotifyTierUp(Long userId, Problem problem) {
+        Tier tier = problem.getTier();
+        if (tier == null) return;
+
+        String family = tier.name().substring(0, tier.name().indexOf('_')); // GOLD_II → "GOLD"
+        List<Tier> familyTiers = Arrays.stream(Tier.values())
+                .filter(t -> t.name().startsWith(family + "_"))
+                .toList();
+
+        long prior = solutionRepository.countByUserInTiers(userId, problem.getId(), familyTiers);
+        if (prior == 0) {
+            notificationService.create(userId, NotificationType.TIER_UP,
+                    Map.<String, Object>of("family", family,
+                            "problemId", problem.getId(),
+                            "problemTitle", problem.getTitle()));
+        }
     }
 
     // 풀이 수정

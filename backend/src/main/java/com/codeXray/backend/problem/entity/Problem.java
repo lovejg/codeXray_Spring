@@ -65,4 +65,10 @@ public class Problem {
         this.tier = tier;
         this.link = link;
     }
+
+    // 레이팅 재계산 결과 반영 (dirty checking으로 UPDATE)
+    public void applyRating(Double adjustedLevel, Tier tier) {
+        this.adjustedLevel = adjustedLevel;
+        this.tier = tier;
+    }
 }

@@ -2,8 +2,11 @@ package com.codeXray.backend.user.repository;
 
 import com.codeXray.backend.user.entity.AuthProvider;
 import com.codeXray.backend.user.entity.User;
+import com.codeXray.backend.user.entity.UserRole;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
@@ -20,4 +23,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Boolean existsByNickname(String nickname);
 
     void deleteById(Long id);
+
+    // 관리자 전체에게 알림 broadcast 할 때, id만 가볍게 조회
+    @Query("select u.id from User u where u.role = :role")
+    List<Long> findIdsByRole(UserRole role);
 }
