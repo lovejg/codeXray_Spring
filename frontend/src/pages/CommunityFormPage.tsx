@@ -65,12 +65,12 @@ export default function CommunityFormPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <h1 className="mb-4 text-xl font-bold text-white">{isEdit ? '글 수정' : '글쓰기'}</h1>
+      <h1 className="page-title mb-5">{isEdit ? '글 수정' : '글쓰기'}</h1>
 
       {!isEdit && (
         <div className="mb-3">
-          <label className="mb-1.5 block text-sm text-slate-400">유형</label>
-          <select value={type} onChange={(e) => setType(e.target.value as PostType)} className="rounded-lg border border-slate-700 bg-slate-950 px-2.5 py-1.5 text-sm text-slate-200 outline-none focus:border-sky-500">
+          <label className="mb-1.5 block text-sm font-medium text-slate-400">유형</label>
+          <select value={type} onChange={(e) => setType(e.target.value as PostType)} className="rounded-xl border border-white/10 bg-slate-950/60 px-3 py-2 text-sm text-slate-200 outline-none transition focus:border-teal-400/70 focus:ring-2 focus:ring-teal-500/20">
             {COMMUNITY_POST_TYPES.map((t) => <option key={t} value={t}>{POST_TYPE_LABEL[t]}</option>)}
           </select>
         </div>
@@ -78,9 +78,9 @@ export default function CommunityFormPage() {
 
       {!isEdit && (
         <div className="mb-3">
-          <label className="mb-1.5 block text-sm text-slate-400">연결할 문제 (선택)</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-400">연결할 문제 (선택)</label>
           {problem ? (
-            <div className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-200">
+            <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-200">
               {problem.title}
               <button onClick={() => setProblem(null)} className="ml-auto text-xs text-slate-500 hover:text-slate-300">해제</button>
             </div>
@@ -90,22 +90,37 @@ export default function CommunityFormPage() {
         </div>
       )}
 
-      <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="제목" className="mb-3 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-sky-500" />
-      <textarea value={content} onChange={(e) => setContent(e.target.value)} rows={14} placeholder="내용 (마크다운 지원)" className="mb-3 w-full resize-y rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 font-mono text-[13px] text-slate-100 outline-none focus:border-sky-500" />
+      <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="제목" className="input-field mb-3" />
+      <textarea value={content} onChange={(e) => setContent(e.target.value)} rows={16} placeholder={COMMUNITY_CONTENT_PLACEHOLDER} className="input-field mb-3 resize-y font-mono text-[13px] leading-relaxed" />
 
-      <label className="mb-4 flex items-center gap-2 text-sm text-slate-400">
-        <input type="checkbox" checked={isPrivate} onChange={(e) => setIsPrivate(e.target.checked)} className="accent-sky-500" />
+      <label className="mb-5 flex items-center gap-2 text-sm text-slate-400">
+        <input type="checkbox" checked={isPrivate} onChange={(e) => setIsPrivate(e.target.checked)} className="accent-teal-500" />
         비공개 (나와 관리자만 볼 수 있음)
       </label>
 
       {error && <p className="mb-3 text-sm text-rose-400">{error}</p>}
 
       <div className="flex gap-2">
-        <button onClick={save} disabled={saving} className="rounded-lg bg-sky-500 px-5 py-2 text-sm font-medium text-white hover:bg-sky-400 disabled:opacity-60">
+        <button onClick={save} disabled={saving} className="btn-primary">
           {saving ? '저장 중…' : '저장'}
         </button>
-        <button onClick={() => navigate(-1)} className="rounded-lg border border-slate-700 px-5 py-2 text-sm text-slate-300 hover:bg-slate-800">취소</button>
+        <button onClick={() => navigate(-1)} className="btn-ghost">취소</button>
       </div>
     </div>
   )
 }
+
+// 마크다운 코드펜스(```언어) 사용법을 겸한 작성 예시
+const COMMUNITY_CONTENT_PLACEHOLDER = `질문이나 공유할 내용을 자유롭게 작성하세요. 예)
+
+## 상황
+- 백준 1234를 풀다가 시간초과가 났어요.
+
+## 시도한 코드
+\`\`\`python
+for i in range(n):
+    for j in range(n):
+        ...
+\`\`\`
+
+어느 부분을 개선하면 좋을까요?`

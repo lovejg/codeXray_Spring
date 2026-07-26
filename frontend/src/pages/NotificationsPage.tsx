@@ -58,9 +58,9 @@ export default function NotificationsPage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <div className="mb-4 flex items-center gap-3">
-        <h1 className="text-xl font-bold text-white">알림</h1>
-        <button onClick={markAllRead} className="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-slate-700 px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-800">
+      <div className="mb-5 flex items-center gap-3">
+        <h1 className="page-title">알림</h1>
+        <button onClick={markAllRead} className="btn-ghost ml-auto px-4 py-2">
           <Check size={14} /> 모두 읽음
         </button>
       </div>
@@ -74,13 +74,13 @@ export default function NotificationsPage() {
           return (
             <div
               key={n.id}
-              className={`flex items-start gap-3 rounded-xl border p-3 ${n.isRead ? 'border-slate-800 bg-slate-900/30' : 'border-sky-800/50 bg-sky-950/20'}`}
+              className={`flex items-start gap-3 rounded-xl border p-3.5 transition ${n.isRead ? 'border-white/10 bg-white/[0.03]' : 'border-teal-500/40 bg-teal-950/20'}`}
             >
               <button onClick={() => onClickItem(n)} className="min-w-0 flex-1 text-left">
                 <p className={`text-sm ${n.isRead ? 'text-slate-400' : 'text-slate-100'}`}>{text}</p>
                 <p className="mt-1 text-xs text-slate-600">{timeAgo(n.createdAt)}</p>
               </button>
-              {!n.isRead && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-sky-400" />}
+              {!n.isRead && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-teal-400" />}
               <button onClick={() => remove(n.id)} className="text-slate-600 hover:text-rose-400" aria-label="삭제"><Trash2 size={15} /></button>
             </div>
           )
@@ -89,7 +89,7 @@ export default function NotificationsPage() {
 
       {hasMore && items.length > 0 && (
         <div className="mt-4 flex justify-center">
-          <button onClick={() => load(cursor)} disabled={loading} className="rounded-lg border border-slate-700 px-4 py-1.5 text-sm text-slate-300 hover:bg-slate-800 disabled:opacity-50">
+          <button onClick={() => load(cursor)} disabled={loading} className="btn-ghost px-4 py-2 disabled:opacity-50">
             {loading ? '불러오는 중…' : '더 보기'}
           </button>
         </div>

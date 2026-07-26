@@ -48,7 +48,7 @@ export default function CommunityPostPage() {
     <div className="mx-auto max-w-3xl">
       <Link to="/community" className="text-sm text-slate-500 hover:text-slate-300">← 커뮤니티</Link>
 
-      <div className="mt-3 flex gap-4 rounded-2xl border border-slate-800 bg-slate-900/40 p-6">
+      <div className="glass-card mt-3 flex gap-4 p-6">
         {votable && <VoteButtons postId={post.id} initial={post.votes} />}
 
         <div className="min-w-0 flex-1">
@@ -73,7 +73,7 @@ export default function CommunityPostPage() {
           <div className="mt-5 flex items-center gap-3 text-xs">
             {isOwner && (
               <>
-                <Link to={`/community/${post.id}/edit`} className="inline-flex items-center gap-1 text-slate-400 hover:text-sky-400"><Pencil size={13} /> 수정</Link>
+                <Link to={`/community/${post.id}/edit`} className="inline-flex items-center gap-1 text-slate-400 hover:text-teal-300"><Pencil size={13} /> 수정</Link>
                 <button onClick={() => { if (confirm('삭제할까요?')) del.mutate() }} className="inline-flex items-center gap-1 text-slate-400 hover:text-rose-400"><Trash2 size={13} /> 삭제</button>
               </>
             )}
@@ -118,14 +118,14 @@ function CommentSection({ postId, comments, canComment }: { postId: number; comm
   })
 
   return (
-    <section className="mt-4 rounded-2xl border border-slate-800 bg-slate-900/40 p-6">
+    <section className="glass-card mt-4 p-6">
       <h2 className="mb-4 text-sm font-semibold text-slate-300">댓글 {comments.length}</h2>
 
       <div className="space-y-3">
         {comments.map((c) => {
           const owner = user && c.author.id === user.id
           return (
-            <div key={c.id} className="rounded-lg border border-slate-800 bg-slate-950/40 p-3">
+            <div key={c.id} className="rounded-xl border border-white/10 bg-white/5 p-3">
               <div className="flex items-center gap-2 text-xs text-slate-500">
                 <AuthorName author={c.author} />
                 <span>·</span>
@@ -146,14 +146,14 @@ function CommentSection({ postId, comments, canComment }: { postId: number; comm
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            rows={2}
+            rows={3}
             maxLength={2000}
             placeholder="댓글 작성"
-            className="w-full resize-y rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-sky-500"
+            className="input-field resize-y"
           />
           {error && <p className="mt-1 text-xs text-rose-400">{error}</p>}
           <div className="mt-2 flex justify-end">
-            <button onClick={() => content.trim() && add.mutate()} disabled={add.isPending || !content.trim()} className="rounded-lg bg-sky-500 px-4 py-1.5 text-sm font-medium text-white hover:bg-sky-400 disabled:opacity-50">
+            <button onClick={() => content.trim() && add.mutate()} disabled={add.isPending || !content.trim()} className="btn-primary px-4 py-2">
               등록
             </button>
           </div>

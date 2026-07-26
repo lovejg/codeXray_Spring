@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { solutionsApi, type UpsertMemoBody } from '../api/solutions'
 import { problemsApi } from '../api/problems'
 import type { Problem } from '../types'
@@ -17,6 +17,7 @@ export default function SolutionFormPage() {
   const [params] = useSearchParams()
   const presetProblemId = params.get('problemId') ? Number(params.get('problemId')) : null
   const navigate = useNavigate()
+  const qc = useQueryClient()
 
   // 편집 대상 로드
   const { data: editing, isLoading: loadingEdit } = useQuery({
@@ -73,6 +74,9 @@ export default function SolutionFormPage() {
       if (hasMemo) {
         await solutionsApi.upsertMemo(saved.id, memo)
       }
+      // 목록/상세 캐시를 무효화 → 이동한 화면에서 새로고침 없이 최신 반영
+      qc.invalidateQueries({ queryKey: ['solutions'] })
+      qc.invalidateQueries({ queryKey: ['solution', saved.id] })
       navigate('/solutions')
     } catch (err) {
       setError(apiErrorMessage(err, '저장에 실패했습니다.'))
@@ -85,13 +89,13 @@ export default function SolutionFormPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <h1 className="mb-4 text-xl font-bold text-white">{isEdit ? '풀이 수정' : '풀이 등록'}</h1>
+      <h1 className="page-title mb-5">{isEdit ? '풀이 수정' : '풀이 등록'}</h1>
 
       {/* 문제 선택 (편집/preset 이면 고정) */}
       <div className="mb-4">
-        <label className="mb-1.5 block text-sm text-slate-400">문제</label>
+        <label className="mb-1.5 block text-sm font-medium text-slate-400">문제</label>
         {problem ? (
-          <div className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-200">
+          <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-200">
             {problem.title}
             {!isEdit && (
               <button onClick={() => setProblem(null)} className="ml-auto text-xs text-slate-500 hover:text-slate-300">변경</button>
@@ -103,19 +107,19 @@ export default function SolutionFormPage() {
       </div>
 
       <div className="mb-4">
-        <label className="mb-1.5 block text-sm text-slate-400">언어</label>
-        <select value={language} onChange={(e) => setLanguage(e.target.value)} className="rounded-lg border border-slate-700 bg-slate-950 px-2.5 py-1.5 text-sm text-slate-200 outline-none focus:border-sky-500">
+        <label className="mb-1.5 block text-sm font-medium text-slate-400">언어</label>
+        <select value={language} onChange={(e) => setLanguage(e.target.value)} className="rounded-xl border border-white/10 bg-slate-950/60 px-3 py-2 text-sm text-slate-200 outline-none transition focus:border-teal-400/70 focus:ring-2 focus:ring-teal-500/20">
           {LANGUAGES.map((l) => <option key={l} value={l}>{languageLabel(l)}</option>)}
         </select>
       </div>
 
       <div className="mb-4">
-        <label className="mb-1.5 block text-sm text-slate-400">코드</label>
-        <CodeEditor value={code} onChange={setCode} placeholder="풀이 코드를 붙여넣으세요" />
+        <label className="mb-1.5 block text-sm font-medium text-slate-400">코드</label>
+        <CodeEditor value={code} onChange={setCode} language={language} placeholder="풀이 코드를 입력하거나 붙여넣으세요" />
       </div>
 
       {/* 메모 (선택) */}
-      <details className="mb-4 rounded-lg border border-slate-800 bg-slate-900/40 p-4">
+      <details className="glass-card mb-4 p-4">
         <summary className="cursor-pointer text-sm text-slate-300">메모 (선택)</summary>
         <div className="mt-3 space-y-3">
           <MemoField label="틀린 이유" value={memo.wrongReason} onChange={(v) => setMemo((m) => ({ ...m, wrongReason: v }))} />
@@ -128,10 +132,10 @@ export default function SolutionFormPage() {
       {error && <p className="mb-3 text-sm text-rose-400">{error}</p>}
 
       <div className="flex gap-2">
-        <button onClick={onSubmit} disabled={saving} className="rounded-lg bg-sky-500 px-5 py-2 text-sm font-medium text-white hover:bg-sky-400 disabled:opacity-60">
+        <button onClick={onSubmit} disabled={saving} className="btn-primary">
           {saving ? '저장 중…' : '저장'}
         </button>
-        <button onClick={() => navigate(-1)} className="rounded-lg border border-slate-700 px-5 py-2 text-sm text-slate-300 hover:bg-slate-800">
+        <button onClick={() => navigate(-1)} className="btn-ghost">
           취소
         </button>
       </div>
@@ -147,7 +151,7 @@ function MemoField({ label, value, onChange }: { label: string; value?: string; 
         value={value ?? ''}
         onChange={(e) => onChange(e.target.value)}
         rows={2}
-        className="w-full resize-y rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none focus:border-sky-500"
+        className="input-field resize-y"
       />
     </label>
   )

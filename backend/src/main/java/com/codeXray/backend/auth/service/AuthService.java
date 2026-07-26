@@ -135,6 +135,9 @@ public class AuthService {
 
     /* -------------- 헬퍼 -------------- */
     private void issueAndSendVerification(User user) {
+        // 새 토큰 발급 전 기존 토큰 제거 → 재발송 시 이전 링크는 무효(INVALID_TOKEN)
+        emailVerificationTokenRepository.deleteByUserId(user.getId());
+
         String token = UUID.randomUUID().toString();
         LocalDateTime expiresAt = LocalDateTime.now().plusHours(24);
         EmailVerificationToken emailVerificationToken = EmailVerificationToken.builder()

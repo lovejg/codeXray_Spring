@@ -12,8 +12,10 @@ import OAuthCallbackPage from './pages/OAuthCallbackPage'
 import ProblemsPage from './pages/ProblemsPage'
 import ProblemDetailPage from './pages/ProblemDetailPage'
 import SolutionsPage from './pages/SolutionsPage'
+import SolutionDetailPage from './pages/SolutionDetailPage'
 import SolutionFormPage from './pages/SolutionFormPage'
 import NotesPage from './pages/NotesPage'
+import NoteDetailPage from './pages/NoteDetailPage'
 import CommunityPage from './pages/CommunityPage'
 import CommunityPostPage from './pages/CommunityPostPage'
 import CommunityFormPage from './pages/CommunityFormPage'
@@ -40,7 +42,7 @@ function AppRoutes() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/verify-email" element={<VerifyEmailPage />} />
-      <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
+      <Route path="/oauth/callback/:provider" element={<OAuthCallbackPage />} />
 
       {/* 레이아웃 아래: 문제 조회는 공개, 나머지는 보호 */}
       <Route element={<Layout />}>
@@ -57,8 +59,10 @@ function AppRoutes() {
 
         <Route path="/solutions" element={<ProtectedRoute><SolutionsPage /></ProtectedRoute>} />
         <Route path="/solutions/new" element={<ProtectedRoute><SolutionFormPage /></ProtectedRoute>} />
+        <Route path="/solutions/:id" element={<ProtectedRoute><SolutionDetailPage /></ProtectedRoute>} />
         <Route path="/solutions/:id/edit" element={<ProtectedRoute><SolutionFormPage /></ProtectedRoute>} />
         <Route path="/notes" element={<ProtectedRoute><NotesPage /></ProtectedRoute>} />
+        <Route path="/notes/:id" element={<ProtectedRoute><NoteDetailPage /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
         <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
         <Route path="/admin/reports" element={<ProtectedRoute><AdminReportsPage /></ProtectedRoute>} />

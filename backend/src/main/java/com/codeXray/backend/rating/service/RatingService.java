@@ -8,6 +8,7 @@ import com.codeXray.backend.rating.dto.FeedbackResponse;
 import com.codeXray.backend.rating.entity.LevelFeedback;
 import com.codeXray.backend.rating.repository.LevelFeedbackRepository;
 import com.codeXray.backend.rating.util.RatingCalculator;
+import com.codeXray.backend.solution.repository.SolutionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +24,7 @@ public class RatingService {
 
     private final LevelFeedbackRepository feedbackRepository;
     private final ProblemRepository problemRepository;
+    private final SolutionRepository solutionRepository;
 
     // 피드백 제출(upsert) → 즉시 그 문제의 adjustedLevel/tier 재계산
     @Transactional
@@ -30,6 +32,11 @@ public class RatingService {
         // 존재하지 않는 문제에 피드백 남기는 것 차단 (save 전에 걸러 깔끔한 404)
         if (!problemRepository.existsById(problemId)) {
             throw new BusinessException(ErrorCode.PROBLEM_NOT_FOUND);
+        }
+
+        // 실제로 풀어본(=풀이를 등록한) 문제만 체감 난이도를 남길 수 있음
+        if (solutionRepository.findByUserIdAndProblemId(userId, problemId).isEmpty()) {
+            throw new BusinessException(ErrorCode.FEEDBACK_REQUIRES_SOLUTION);
         }
 
         LevelFeedback feedback = feedbackRepository.findByUserIdAndProblemId(userId, problemId)

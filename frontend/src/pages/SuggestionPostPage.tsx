@@ -40,7 +40,7 @@ export default function SuggestionPostPage() {
     <div className="mx-auto max-w-3xl">
       <Link to="/suggestions" className="text-sm text-slate-500 hover:text-slate-300">← 건의사항</Link>
 
-      <div className="mt-3 rounded-2xl border border-slate-800 bg-slate-900/40 p-6">
+      <div className="glass-card mt-3 p-6">
         <div className="flex flex-wrap items-center gap-2">
           <PostTypeBadge type={post.type} />
           <StatusBadge status={post.status} />
@@ -60,7 +60,7 @@ export default function SuggestionPostPage() {
           <div className="mt-5 flex items-center gap-3 text-xs">
             {isOwner && (
               <>
-                <Link to={`/community/${post.id}/edit`} className="inline-flex items-center gap-1 text-slate-400 hover:text-sky-400"><Pencil size={13} /> 수정</Link>
+                <Link to={`/community/${post.id}/edit`} className="inline-flex items-center gap-1 text-slate-400 hover:text-teal-300"><Pencil size={13} /> 수정</Link>
                 <button onClick={() => { if (confirm('삭제할까요?')) del.mutate() }} className="inline-flex items-center gap-1 text-slate-400 hover:text-rose-400"><Trash2 size={13} /> 삭제</button>
               </>
             )}
@@ -73,8 +73,8 @@ export default function SuggestionPostPage() {
 
       {/* 관리자 공식 답변 */}
       {post.adminReply && (
-        <div className="mt-4 rounded-2xl border border-sky-800/50 bg-sky-950/30 p-6">
-          <p className="mb-2 text-sm font-semibold text-sky-300">관리자 답변</p>
+        <div className="mt-4 rounded-2xl border border-teal-500/40 bg-teal-950/30 p-6 backdrop-blur-sm">
+          <p className="mb-2 text-sm font-semibold text-teal-300">관리자 답변</p>
           <Markdown>{post.adminReply}</Markdown>
           {post.adminReplyAt && <p className="mt-2 text-xs text-slate-500">{timeAgo(post.adminReplyAt)}</p>}
         </div>
@@ -110,7 +110,7 @@ function AdminControls({ postId, status, adminReply }: { postId: number; status?
           <button
             key={s}
             onClick={() => setStatus.mutate(s)}
-            className={`rounded-lg border px-3 py-1.5 text-sm ${status === s ? 'border-sky-500 bg-sky-500/20 text-sky-300' : 'border-slate-700 text-slate-300 hover:bg-slate-800'}`}
+            className={`rounded-xl border px-3.5 py-2 text-sm transition ${status === s ? 'border-teal-500 bg-teal-500/20 text-teal-300' : 'border-white/10 text-slate-300 hover:bg-white/5'}`}
           >
             {STATUS_LABEL[s]}
           </button>
@@ -118,9 +118,9 @@ function AdminControls({ postId, status, adminReply }: { postId: number; status?
       </div>
 
       <label className="mb-1.5 block text-sm text-slate-400">공식 답변 (빈 값 저장 시 삭제)</label>
-      <textarea value={reply} onChange={(e) => setReply(e.target.value)} rows={4} className="w-full resize-y rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none focus:border-sky-500" />
+      <textarea value={reply} onChange={(e) => setReply(e.target.value)} rows={4} className="input-field resize-y" />
       <div className="mt-2 flex justify-end">
-        <button onClick={() => saveReply.mutate()} disabled={saveReply.isPending} className="rounded-lg bg-sky-500 px-4 py-1.5 text-sm font-medium text-white hover:bg-sky-400 disabled:opacity-60">
+        <button onClick={() => saveReply.mutate()} disabled={saveReply.isPending} className="btn-primary px-4 py-2">
           답변 저장
         </button>
       </div>

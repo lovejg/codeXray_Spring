@@ -39,6 +39,9 @@ public enum ErrorCode {
     SOLUTION_NOT_FOUND(HttpStatus.NOT_FOUND, "풀이를 찾을 수 없습니다."),
     PROBLEM_NOT_FOUND(HttpStatus.NOT_FOUND, "문제를 찾을 수 없습니다."),
 
+    // ── 레이팅(체감 난이도 피드백) ──
+    FEEDBACK_REQUIRES_SOLUTION(HttpStatus.FORBIDDEN, "풀이를 먼저 등록해야 체감 난이도를 남길 수 있습니다."),
+
     // ── 노트 ──
     NOTE_NOT_FOUND(HttpStatus.NOT_FOUND, "노트를 찾을 수 없습니다."),
 
@@ -59,7 +62,11 @@ public enum ErrorCode {
 
     // ── AI ──
     AI_RATE_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "AI 분석은 하루 한도를 초과했습니다. 내일 다시 시도해 주세요."),
-    AI_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "AI 기능을 현재 사용할 수 없습니다.");
+    AI_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "AI 기능을 현재 사용할 수 없습니다."),
+
+    // ── OAuth (소셜 로그인) ──
+    OAUTH_EMAIL_REQUIRED(HttpStatus.BAD_REQUEST, "소셜 계정의 이메일 제공에 동의해야 로그인할 수 있습니다."),
+    OAUTH_FAILED(HttpStatus.UNAUTHORIZED, "소셜 로그인에 실패했습니다.");
 
     private final HttpStatus status;
     private final String message;

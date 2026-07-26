@@ -29,17 +29,17 @@ export default function ProfilePage() {
 
   return (
     <div className="mx-auto max-w-xl">
-      <h1 className="mb-4 text-xl font-bold text-white">프로필</h1>
+      <h1 className="page-title mb-5">프로필</h1>
 
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-6">
+      <div className="glass-card p-6">
         <Row label="이메일"><span className="text-slate-200">{user.email}</span></Row>
         <Row label="권한"><span className="text-slate-400">{user.role === 'ADMIN' ? '관리자' : '일반 회원'}</span></Row>
 
         <div className="mt-4">
-          <label className="mb-1.5 block text-sm text-slate-400">닉네임</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-400">닉네임</label>
           <div className="flex gap-2">
-            <input value={nickname} onChange={(e) => setNickname(e.target.value)} minLength={2} maxLength={20} className="flex-1 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-sky-500" />
-            <button onClick={saveNickname} className="rounded-lg bg-sky-500 px-4 py-2 text-sm font-medium text-white hover:bg-sky-400">변경</button>
+            <input value={nickname} onChange={(e) => setNickname(e.target.value)} minLength={2} maxLength={20} className="input-field flex-1" />
+            <button onClick={saveNickname} className="btn-primary px-4">변경</button>
           </div>
           {msg && <p className="mt-2 text-sm text-emerald-400">{msg}</p>}
           {err && <p className="mt-2 text-sm text-rose-400">{err}</p>}
@@ -47,8 +47,8 @@ export default function ProfilePage() {
       </div>
 
       <div className="mt-4 flex gap-2">
-        <button onClick={() => setPwOpen(true)} className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 hover:bg-slate-800">비밀번호 변경</button>
-        <button onClick={() => setDelOpen(true)} className="ml-auto rounded-lg border border-rose-800 px-4 py-2 text-sm text-rose-400 hover:bg-rose-950/40">회원 탈퇴</button>
+        <button onClick={() => setPwOpen(true)} className="btn-ghost">비밀번호 변경</button>
+        <button onClick={() => setDelOpen(true)} className="ml-auto rounded-xl border border-rose-800/60 px-5 py-2.5 text-sm text-rose-400 transition hover:bg-rose-950/40">회원 탈퇴</button>
       </div>
 
       {pwOpen && <PasswordModal onClose={() => setPwOpen(false)} />}
@@ -59,7 +59,7 @@ export default function ProfilePage() {
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between border-b border-slate-800 py-2 last:border-0">
+    <div className="flex items-center justify-between border-b border-white/10 py-2.5 last:border-0">
       <span className="text-sm text-slate-500">{label}</span>
       {children}
     </div>
@@ -88,7 +88,7 @@ function PasswordModal({ onClose }: { onClose: () => void }) {
       {done ? (
         <div>
           <p className="text-sm text-emerald-400">비밀번호가 변경되었습니다.</p>
-          <button onClick={onClose} className="mt-4 rounded-lg bg-sky-500 px-4 py-1.5 text-sm font-medium text-white">확인</button>
+          <button onClick={onClose} className="btn-primary mt-4 px-4 py-2">확인</button>
         </div>
       ) : (
         <div className="space-y-3">
@@ -96,8 +96,8 @@ function PasswordModal({ onClose }: { onClose: () => void }) {
           <input type="password" value={next} onChange={(e) => setNext(e.target.value)} placeholder="새 비밀번호 (8자 이상)" className={pwInput} />
           {err && <p className="text-sm text-rose-400">{err}</p>}
           <div className="flex justify-end gap-2">
-            <button onClick={onClose} className="rounded-lg border border-slate-700 px-4 py-1.5 text-sm text-slate-300 hover:bg-slate-800">취소</button>
-            <button onClick={submit} className="rounded-lg bg-sky-500 px-4 py-1.5 text-sm font-medium text-white hover:bg-sky-400">변경</button>
+            <button onClick={onClose} className="btn-ghost px-4 py-2">취소</button>
+            <button onClick={submit} className="btn-primary px-4 py-2">변경</button>
           </div>
         </div>
       )}
@@ -129,11 +129,11 @@ function WithdrawModal({ onClose }: { onClose: () => void }) {
       <p className="text-sm text-slate-300">정말 탈퇴하시겠어요? 내 풀이·노트 등 개인 데이터가 삭제되며 되돌릴 수 없습니다.</p>
       {err && <p className="mt-2 text-sm text-rose-400">{err}</p>}
       <div className="mt-4 flex justify-end gap-2">
-        <button onClick={onClose} className="rounded-lg border border-slate-700 px-4 py-1.5 text-sm text-slate-300 hover:bg-slate-800">취소</button>
-        <button onClick={confirmDelete} className="rounded-lg bg-rose-500 px-4 py-1.5 text-sm font-medium text-white hover:bg-rose-400">탈퇴</button>
+        <button onClick={onClose} className="btn-ghost px-4 py-2">취소</button>
+        <button onClick={confirmDelete} className="rounded-xl bg-rose-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-rose-400">탈퇴</button>
       </div>
     </Modal>
   )
 }
 
-const pwInput = 'w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-sky-500'
+const pwInput = 'input-field'

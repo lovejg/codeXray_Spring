@@ -20,6 +20,9 @@ export const authApi = {
   oauthGoogle: (code: string) =>
     client.post<LoginResult>('/auth/oauth/google', { code }).then((r) => r.data),
 
+  oauthNaver: (code: string, state: string) =>
+    client.post<LoginResult>('/auth/oauth/naver', { code, state }).then((r) => r.data),
+
   logout: () => client.post('/auth/logout'),
 
   // 로그인/OAuth 후 access token 으로 내 정보 조회

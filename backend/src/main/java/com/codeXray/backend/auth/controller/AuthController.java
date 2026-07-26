@@ -72,6 +72,14 @@ public class AuthController {
         return ResponseEntity.ok(new LoginResponse(tokenPair.accessToken()));
     }
 
+    @PostMapping("/oauth/naver")
+    public ResponseEntity<LoginResponse> naverLogin(@Valid @RequestBody NaverLoginRequest req, HttpServletResponse response) {
+        TokenPair tokenPair = oAuthService.loginWithNaver(req.code(), req.state());
+        ResponseCookie cookie = refreshCookieUtil.create(tokenPair.refreshToken());
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+        return ResponseEntity.ok(new LoginResponse(tokenPair.accessToken()));
+    }
+
     @PostMapping("/resend-verification")
     public ResponseEntity<Void> resendVerification(@Valid @RequestBody ResendVerificationRequest req) {
         authService.resendVerification(req.email());

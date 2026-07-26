@@ -1,7 +1,8 @@
 import { Link, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { ExternalLink, Pencil } from 'lucide-react'
+import { ExternalLink, Pencil, FileText } from 'lucide-react'
 import { problemsApi } from '../api/problems'
+import { solutionsApi } from '../api/solutions'
 import { useAuthStore } from '../store/authStore'
 import Spinner from '../components/common/Spinner'
 import TierBadge from '../components/common/TierBadge'
@@ -21,6 +22,14 @@ export default function ProblemDetailPage() {
     enabled: Number.isFinite(problemId),
   })
 
+  // 내 풀이 목록(FeedbackWidget과 같은 캐시키 → 중복 요청 없음). 이 문제 풀이 존재 여부로 CTA 결정.
+  const { data: mySolutions } = useQuery({
+    queryKey: ['solutions', 'mine-all'],
+    queryFn: () => solutionsApi.list(),
+    enabled: !!user,
+  })
+  const mySolution = mySolutions?.find((s) => s.problem.id === problemId) ?? null
+
   if (isLoading) return <Spinner label="불러오는 중…" />
   if (isError || !problem) return <p className="py-10 text-center text-sm text-rose-400">문제를 찾을 수 없습니다.</p>
 
@@ -28,14 +37,14 @@ export default function ProblemDetailPage() {
     <div className="mx-auto max-w-3xl">
       <Link to="/problems" className="text-sm text-slate-500 hover:text-slate-300">← 문제 목록</Link>
 
-      <div className="mt-3 rounded-2xl border border-slate-800 bg-slate-900/40 p-6">
+      <div className="glass-card mt-3 p-6">
         <div className="flex items-start justify-between gap-4">
           <h1 className="text-2xl font-bold text-white">{problem.title}</h1>
           <a
             href={problem.link}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800"
+            className="btn-ghost shrink-0"
           >
             문제 풀러가기 <ExternalLink size={14} />
           </a>
@@ -57,23 +66,26 @@ export default function ProblemDetailPage() {
         )}
       </div>
 
+      {/* 풀이 액션 — 상황에 따라 하나만 노출(작성 or 보기) */}
+      {user && (
+        <div className="mt-4">
+          {mySolution ? (
+            <Link to={`/solutions/${mySolution.id}`} className="btn-primary">
+              <FileText size={16} /> 내 풀이 보기
+            </Link>
+          ) : (
+            <Link to={`/solutions/new?problemId=${problem.id}`} className="btn-primary">
+              <Pencil size={16} /> 이 문제 풀이 작성
+            </Link>
+          )}
+        </div>
+      )}
+
       {/* 난이도 피드백 */}
-      <section className="mt-4 rounded-2xl border border-slate-800 bg-slate-900/40 p-6">
+      <section className="glass-card mt-4 p-6">
         <h2 className="mb-3 text-sm font-semibold text-slate-300">체감 난이도 피드백</h2>
         <FeedbackWidget problemId={problem.id} />
       </section>
-
-      {/* 내 풀이 작성 */}
-      {user && (
-        <div className="mt-4">
-          <Link
-            to={`/solutions/new?problemId=${problem.id}`}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-sky-500 px-4 py-2 text-sm font-medium text-white hover:bg-sky-400"
-          >
-            <Pencil size={15} /> 이 문제 풀이 작성
-          </Link>
-        </div>
-      )}
     </div>
   )
 }

@@ -6,6 +6,7 @@ import { communityApi } from '../api/community'
 import { COMMUNITY_POST_TYPES } from '../types'
 import { useAuthStore } from '../store/authStore'
 import { timeAgo } from '../lib/date'
+import PageHeader from '../components/common/PageHeader'
 import Spinner from '../components/common/Spinner'
 import PostTypeBadge from '../components/common/PostTypeBadge'
 import AuthorName from '../components/common/AuthorName'
@@ -21,34 +22,31 @@ export default function CommunityPage() {
 
   return (
     <div>
-      <div className="mb-4 flex items-center gap-3">
-        <h1 className="text-xl font-bold text-white">커뮤니티</h1>
-        <div className="ml-auto flex items-center gap-2">
-          <div className="flex overflow-hidden rounded-lg border border-slate-700 text-sm">
-            {(['recent', 'votes'] as const).map((s) => (
-              <button
-                key={s}
-                onClick={() => setSort(s)}
-                className={`px-3 py-1.5 ${sort === s ? 'bg-slate-800 text-white' : 'text-slate-400 hover:bg-slate-800/60'}`}
-              >
-                {s === 'recent' ? '최신순' : '추천순'}
-              </button>
-            ))}
-          </div>
-          {user && (
-            <Link to="/community/new" className="inline-flex items-center gap-1.5 rounded-lg bg-sky-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-sky-400">
-              <Plus size={15} /> 글쓰기
-            </Link>
-          )}
+      <PageHeader title="커뮤니티" subtitle="문제 풀이를 공유하고 서로 질문에 답해보세요.">
+        <div className="flex overflow-hidden rounded-xl border border-white/10 text-sm">
+          {(['recent', 'votes'] as const).map((s) => (
+            <button
+              key={s}
+              onClick={() => setSort(s)}
+              className={`px-3.5 py-2 transition ${sort === s ? 'bg-white/10 text-white' : 'text-slate-400 hover:bg-white/5'}`}
+            >
+              {s === 'recent' ? '최신순' : '추천순'}
+            </button>
+          ))}
         </div>
-      </div>
+        {user && (
+          <Link to="/community/new" className="btn-primary">
+            <Plus size={16} /> 글쓰기
+          </Link>
+        )}
+      </PageHeader>
 
       {isLoading && <Spinner label="불러오는 중…" />}
       {data && data.length === 0 && <p className="py-16 text-center text-sm text-slate-500">아직 게시글이 없습니다.</p>}
 
-      <div className="divide-y divide-slate-800 overflow-hidden rounded-xl border border-slate-800">
+      <div className="glass-card divide-y divide-white/5 overflow-hidden">
         {data?.map((p) => (
-          <Link key={p.id} to={`/community/${p.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-slate-900/40">
+          <Link key={p.id} to={`/community/${p.id}`} className="flex items-center gap-3 px-5 py-3.5 transition hover:bg-white/5">
             <div className="flex w-10 shrink-0 flex-col items-center">
               <span className={`text-sm font-bold ${p.votes.score > 0 ? 'text-emerald-400' : p.votes.score < 0 ? 'text-rose-400' : 'text-slate-500'}`}>
                 {p.votes.score}

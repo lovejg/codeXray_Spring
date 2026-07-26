@@ -26,6 +26,11 @@ async function refreshAccessToken(): Promise<string> {
   return data.accessToken
 }
 
+// 로그인 전(세션 없음) 호출들 — 이들의 401/403 은 "토큰 만료"가 아니라
+// "자격 증명/인증 상태" 자체의 실패이므로 refresh 재시도를 하면 안 되고,
+// 백엔드가 준 구체 메시지(LOGIN_FAILED 등)를 그대로 화면에 흘려보내야 한다.
+const NO_REFRESH_PATHS = ['/auth/login', '/auth/register', '/auth/oauth', '/auth/verify', '/auth/resend']
+
 client.interceptors.response.use(
   (res) => res,
   async (error: AxiosError) => {
@@ -33,9 +38,11 @@ client.interceptors.response.use(
       | (InternalAxiosRequestConfig & { _retry?: boolean })
       | undefined
     const isRefreshCall = original?.url?.includes('/auth/refresh')
+    const isPublicAuthCall = NO_REFRESH_PATHS.some((p) => original?.url?.includes(p))
 
     // access 만료(401) → refresh 로테이션 후 원 요청 1회 재시도
-    if (error.response?.status === 401 && original && !original._retry && !isRefreshCall) {
+    // 단, refresh 호출 자신과 공개 인증 엔드포인트는 제외.
+    if (error.response?.status === 401 && original && !original._retry && !isRefreshCall && !isPublicAuthCall) {
       original._retry = true
       try {
         refreshPromise = refreshPromise ?? refreshAccessToken()

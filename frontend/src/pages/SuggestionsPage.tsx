@@ -6,6 +6,7 @@ import { communityApi } from '../api/community'
 import { SUGGESTION_POST_TYPES, STATUS_LABEL, type SuggestionStatus } from '../types'
 import { useAuthStore } from '../store/authStore'
 import { timeAgo } from '../lib/date'
+import PageHeader from '../components/common/PageHeader'
 import Spinner from '../components/common/Spinner'
 import PostTypeBadge from '../components/common/PostTypeBadge'
 import StatusBadge from '../components/common/StatusBadge'
@@ -26,26 +27,25 @@ export default function SuggestionsPage() {
 
   return (
     <div>
-      <div className="mb-4 flex items-center gap-3">
-        <h1 className="text-xl font-bold text-white">건의사항</h1>
-        <select value={status} onChange={(e) => setStatus(e.target.value as SuggestionStatus | '')} className="rounded-lg border border-slate-700 bg-slate-950 px-2.5 py-1.5 text-sm text-slate-200 outline-none focus:border-sky-500">
+      <PageHeader title="건의사항" subtitle="개선 아이디어나 버그를 제보하면 관리자가 확인합니다.">
+        <select value={status} onChange={(e) => setStatus(e.target.value as SuggestionStatus | '')} className="rounded-xl border border-white/10 bg-slate-950/60 px-3 py-2 text-sm text-slate-200 outline-none transition focus:border-teal-400/70 focus:ring-2 focus:ring-teal-500/20">
           <option value="">전체 상태</option>
           <option value="IN_PROGRESS">{STATUS_LABEL.IN_PROGRESS}</option>
           <option value="RESOLVED">{STATUS_LABEL.RESOLVED}</option>
         </select>
         {user && (
-          <Link to="/suggestions/new" className="ml-auto inline-flex items-center gap-1.5 rounded-lg bg-sky-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-sky-400">
-            <Plus size={15} /> 건의하기
+          <Link to="/suggestions/new" className="btn-primary">
+            <Plus size={16} /> 건의하기
           </Link>
         )}
-      </div>
+      </PageHeader>
 
       {isLoading && <Spinner label="불러오는 중…" />}
       {data && data.length === 0 && <p className="py-16 text-center text-sm text-slate-500">건의사항이 없습니다.</p>}
 
-      <div className="divide-y divide-slate-800 overflow-hidden rounded-xl border border-slate-800">
+      <div className="glass-card divide-y divide-white/5 overflow-hidden">
         {data?.map((p) => (
-          <Link key={p.id} to={`/suggestions/${p.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-slate-900/40">
+          <Link key={p.id} to={`/suggestions/${p.id}`} className="flex items-center gap-3 px-5 py-3.5 transition hover:bg-white/5">
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <PostTypeBadge type={p.type} />

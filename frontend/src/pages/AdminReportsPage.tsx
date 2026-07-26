@@ -18,9 +18,9 @@ export default function AdminReportsPage() {
 
   return (
     <div>
-      <div className="mb-4 flex items-center gap-3">
-        <h1 className="text-xl font-bold text-white">신고함</h1>
-        <select value={status} onChange={(e) => setStatus(e.target.value as ReportStatus | '')} className="rounded-lg border border-slate-700 bg-slate-950 px-2.5 py-1.5 text-sm text-slate-200 outline-none focus:border-sky-500">
+      <div className="mb-5 flex items-center gap-3">
+        <h1 className="page-title">신고함</h1>
+        <select value={status} onChange={(e) => setStatus(e.target.value as ReportStatus | '')} className="rounded-xl border border-white/10 bg-slate-950/60 px-3 py-2 text-sm text-slate-200 outline-none transition focus:border-teal-400/70 focus:ring-2 focus:ring-teal-500/20">
           <option value="">전체</option>
           <option value="OPEN">{REPORT_STATUS_LABEL.OPEN}</option>
           <option value="HANDLED">{REPORT_STATUS_LABEL.HANDLED}</option>
@@ -53,13 +53,13 @@ function ReportCard({ report }: { report: Report }) {
   })
 
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
+    <div className="glass-card p-5">
       <div className="flex items-center gap-2">
         <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium" style={{ color: c.text, backgroundColor: c.bg }}>
           {REPORT_STATUS_LABEL[report.status]}
         </span>
         <PostTypeBadge type={report.post.type} />
-        <Link to={`/community/${report.post.id}`} className="truncate font-medium text-slate-100 hover:text-sky-400">
+        <Link to={`/community/${report.post.id}`} className="truncate font-medium text-slate-100 transition hover:text-teal-300">
           {report.post.title}
         </Link>
         {report.post.hidden && <span className="text-xs text-rose-400">숨김됨</span>}
@@ -75,15 +75,15 @@ function ReportCard({ report }: { report: Report }) {
 
       {report.status === 'OPEN' && (
         <div className="mt-3 space-y-2">
-          <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="관리자 메모(선택)" className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 text-sm text-white outline-none focus:border-sky-500" />
+          <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="관리자 메모(선택)" className="input-field" />
           <div className="flex flex-wrap gap-2">
-            <button onClick={() => hide.mutate(true)} className="rounded-lg border border-amber-700 bg-amber-500/10 px-3 py-1.5 text-sm text-amber-300 hover:bg-amber-500/20">
+            <button onClick={() => hide.mutate(true)} className="rounded-xl border border-amber-700/60 bg-amber-500/10 px-3.5 py-2 text-sm text-amber-300 transition hover:bg-amber-500/20">
               게시글 숨김
             </button>
-            <button onClick={() => resolve.mutate('HANDLED')} className="rounded-lg border border-emerald-700 bg-emerald-500/10 px-3 py-1.5 text-sm text-emerald-300 hover:bg-emerald-500/20">
+            <button onClick={() => resolve.mutate('HANDLED')} className="rounded-xl border border-emerald-700/60 bg-emerald-500/10 px-3.5 py-2 text-sm text-emerald-300 transition hover:bg-emerald-500/20">
               처리 완료
             </button>
-            <button onClick={() => resolve.mutate('DISMISSED')} className="rounded-lg border border-slate-700 px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-800">
+            <button onClick={() => resolve.mutate('DISMISSED')} className="btn-ghost px-3.5 py-2">
               기각
             </button>
           </div>

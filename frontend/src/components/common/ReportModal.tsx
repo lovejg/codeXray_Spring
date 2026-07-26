@@ -28,7 +28,7 @@ export default function ReportModal({ postId, onClose }: { postId: number; onClo
       {done ? (
         <div>
           <p className="text-sm text-emerald-400">신고가 접수되었습니다.</p>
-          <button onClick={onClose} className="mt-4 rounded-lg bg-sky-500 px-4 py-1.5 text-sm font-medium text-white hover:bg-sky-400">확인</button>
+          <button onClick={onClose} className="btn-primary mt-4 px-4 py-2">확인</button>
         </div>
       ) : (
         <div className="space-y-3">
@@ -38,12 +38,12 @@ export default function ReportModal({ postId, onClose }: { postId: number; onClo
             rows={4}
             maxLength={500}
             placeholder="신고 사유 (2~500자)"
-            className="w-full resize-y rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-sky-500"
+            className="input-field resize-y"
           />
           {error && <p className="text-sm text-rose-400">{error}</p>}
           <div className="flex justify-end gap-2">
-            <button onClick={onClose} className="rounded-lg border border-slate-700 px-4 py-1.5 text-sm text-slate-300 hover:bg-slate-800">취소</button>
-            <button onClick={submit} disabled={busy} className="rounded-lg bg-rose-500 px-4 py-1.5 text-sm font-medium text-white hover:bg-rose-400 disabled:opacity-60">
+            <button onClick={onClose} className="btn-ghost px-4 py-2">취소</button>
+            <button onClick={submit} disabled={busy} className="rounded-xl bg-rose-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-rose-400 disabled:opacity-60">
               {busy ? '접수 중…' : '신고'}
             </button>
           </div>
