@@ -43,7 +43,7 @@ export default function ReportModal({ postId, onClose }: { postId: number; onClo
           {error && <p className="text-sm text-rose-400">{error}</p>}
           <div className="flex justify-end gap-2">
             <button onClick={onClose} className="btn-ghost px-4 py-2">취소</button>
-            <button onClick={submit} disabled={busy} className="rounded-xl bg-rose-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-rose-400 disabled:opacity-60">
+            <button onClick={submit} disabled={busy} className="rounded-md bg-rose-500 px-4 py-2 font-mono text-sm font-semibold text-white transition hover:bg-rose-400 disabled:opacity-60">
               {busy ? '접수 중…' : '신고'}
             </button>
           </div>

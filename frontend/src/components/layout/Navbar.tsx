@@ -24,7 +24,7 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-20 border-b border-slate-800 bg-[#0a0d13]/90 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-7 px-6">
-        <Link to="/problems" className="flex items-center gap-2 font-mono text-lg font-bold">
+        <Link to="/" className="flex items-center gap-2 font-mono text-lg font-bold">
           <span className="text-teal-400">❯</span>
           <span className="text-white">code<span className="text-teal-400">Xray</span></span>
           <span className="cursor-blink -ml-1 text-teal-400">▊</span>

@@ -5,6 +5,8 @@ import com.codeXray.backend.auth.dto.*;
 import com.codeXray.backend.auth.jwt.TokenPair;
 import com.codeXray.backend.auth.service.AuthService;
 import com.codeXray.backend.auth.service.OAuthService;
+import com.codeXray.backend.common.exception.BusinessException;
+import com.codeXray.backend.common.exception.ErrorCode;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -36,20 +38,36 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest req, HttpServletResponse response) {
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest req,
+                                               @RequestHeader(value = "X-Client", required = false) String client,
+                                               HttpServletResponse response) {
         TokenPair tokenPair = authService.login(req.email(), req.password());
+        // 확장(비브라우저)은 쿠키를 못 쓰므로 refresh 도 body 로 내려줌 (웹은 이 헤더를 안 보냄)
+        if ("extension".equals(client)) {
+            return ResponseEntity.ok(LoginResponse.full(tokenPair.accessToken(), tokenPair.refreshToken()));
+        }
         ResponseCookie cookie = refreshCookieUtil.create(tokenPair.refreshToken());
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString()); // 쿠키를 실을 response 객체
-        return ResponseEntity.ok(new LoginResponse(tokenPair.accessToken()));
+        return ResponseEntity.ok(LoginResponse.web(tokenPair.accessToken()));
     }
 
+    // refresh 토큰은 웹=쿠키, 확장=X-Refresh-Token 헤더 로 받는다.
     @PostMapping("/refresh")
-    public ResponseEntity<LoginResponse> refresh(@CookieValue(name = RefreshCookieUtil.COOKIE_NAME) String refreshToken,
+    public ResponseEntity<LoginResponse> refresh(@CookieValue(name = RefreshCookieUtil.COOKIE_NAME, required = false) String cookieToken,
+                                                 @RequestHeader(value = "X-Refresh-Token", required = false) String headerToken,
                                                  HttpServletResponse response) {
-        TokenPair tokenPair = authService.refresh(refreshToken);
+        boolean isExtension = headerToken != null;
+        String provided = isExtension ? headerToken : cookieToken;
+        if (provided == null) throw new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN);
+
+        TokenPair tokenPair = authService.refresh(provided);
+        if (isExtension) {
+            // 회전된 새 refresh 를 확장이 저장하도록 body 로 반환
+            return ResponseEntity.ok(LoginResponse.full(tokenPair.accessToken(), tokenPair.refreshToken()));
+        }
         ResponseCookie cookie = refreshCookieUtil.create(tokenPair.refreshToken());
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-        return ResponseEntity.ok(new LoginResponse(tokenPair.accessToken()));
+        return ResponseEntity.ok(LoginResponse.web(tokenPair.accessToken()));
     }
 
     @PostMapping("/logout")
@@ -69,7 +87,7 @@ public class AuthController {
         TokenPair tokenPair = oAuthService.loginWithGoogle(req.code());
         ResponseCookie cookie = refreshCookieUtil.create(tokenPair.refreshToken());
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-        return ResponseEntity.ok(new LoginResponse(tokenPair.accessToken()));
+        return ResponseEntity.ok(LoginResponse.web(tokenPair.accessToken()));
     }
 
     @PostMapping("/oauth/naver")
@@ -77,7 +95,7 @@ public class AuthController {
         TokenPair tokenPair = oAuthService.loginWithNaver(req.code(), req.state());
         ResponseCookie cookie = refreshCookieUtil.create(tokenPair.refreshToken());
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-        return ResponseEntity.ok(new LoginResponse(tokenPair.accessToken()));
+        return ResponseEntity.ok(LoginResponse.web(tokenPair.accessToken()));
     }
 
     @PostMapping("/resend-verification")

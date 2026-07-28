@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "codeXray Saver",
+  "version": "0.1.0",
+  "description": "프로그래머스 문제 풀이를 codeXray에 원클릭 저장합니다.",
+  "permissions": ["storage", "scripting"],
+  "host_permissions": [
+    "https://school.programmers.co.kr/*",
+    "http://localhost:8080/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://school.programmers.co.kr/learn/courses/30/lessons/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "codeXray Saver",
+    "default_popup": "popup.html"
+  }
+}

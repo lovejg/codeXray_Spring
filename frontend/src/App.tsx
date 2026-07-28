@@ -5,6 +5,7 @@ import Spinner from './components/common/Spinner'
 import Layout from './components/layout/Layout'
 import ProtectedRoute from './components/common/ProtectedRoute'
 
+import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import VerifyEmailPage from './pages/VerifyEmailPage'
@@ -38,6 +39,9 @@ function AppRoutes() {
 
   return (
     <Routes>
+      {/* 메인 랜딩: 로그인 여부와 무관하게 누구나 접근 (로고 → 메인) */}
+      <Route path="/" element={<LandingPage />} />
+
       {/* 공개(비로그인) */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
@@ -46,7 +50,6 @@ function AppRoutes() {
 
       {/* 레이아웃 아래: 문제 조회는 공개, 나머지는 보호 */}
       <Route element={<Layout />}>
-        <Route path="/" element={<Navigate to="/problems" replace />} />
         <Route path="/problems" element={<ProblemsPage />} />
         <Route path="/problems/:id" element={<ProblemDetailPage />} />
         <Route path="/community" element={<CommunityPage />} />

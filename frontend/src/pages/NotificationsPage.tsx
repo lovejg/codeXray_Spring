@@ -7,6 +7,7 @@ import type { AppNotification } from '../types'
 import { formatNotification } from '../lib/formatNotification'
 import { timeAgo } from '../lib/date'
 import Spinner from '../components/common/Spinner'
+import EmptyState from '../components/common/EmptyState'
 
 export default function NotificationsPage() {
   const navigate = useNavigate()
@@ -66,7 +67,7 @@ export default function NotificationsPage() {
       </div>
 
       {loading && items.length === 0 && <Spinner label="불러오는 중…" />}
-      {!loading && items.length === 0 && <p className="py-16 text-center text-sm text-slate-500">알림이 없습니다.</p>}
+      {!loading && items.length === 0 && <EmptyState message="알림이 없습니다" />}
 
       <div className="space-y-2">
         {items.map((n) => {
@@ -74,7 +75,7 @@ export default function NotificationsPage() {
           return (
             <div
               key={n.id}
-              className={`flex items-start gap-3 rounded-xl border p-3.5 transition ${n.isRead ? 'border-white/10 bg-white/[0.03]' : 'border-teal-500/40 bg-teal-950/20'}`}
+              className={`flex items-start gap-3 rounded-lg border p-3.5 transition ${n.isRead ? 'border-slate-800 bg-slate-900/40' : 'border-teal-500/40 bg-teal-950/20'}`}
             >
               <button onClick={() => onClickItem(n)} className="min-w-0 flex-1 text-left">
                 <p className={`text-sm ${n.isRead ? 'text-slate-400' : 'text-slate-100'}`}>{text}</p>

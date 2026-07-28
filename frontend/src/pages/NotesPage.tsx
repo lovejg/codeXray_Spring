@@ -8,6 +8,7 @@ import { languageLabel } from '../lib/languages'
 import { toPlainPreview } from '../lib/markdownPreview'
 import PageHeader from '../components/common/PageHeader'
 import Spinner from '../components/common/Spinner'
+import EmptyState from '../components/common/EmptyState'
 import NoteTypeBadge from '../components/common/NoteTypeBadge'
 import TagBadge from '../components/common/TagBadge'
 import NoteFormModal from './NoteFormModal'
@@ -59,11 +60,11 @@ export default function NotesPage() {
       </div>
 
       {isLoading && <Spinner label="불러오는 중…" />}
-      {data && data.length === 0 && <p className="py-16 text-center text-sm text-slate-500">노트가 없습니다.</p>}
+      {data && data.length === 0 && <EmptyState message="노트가 없습니다" hint="문제를 풀고 배운 걸 노트로 남겨보세요." />}
 
       <div className="grid gap-3 sm:grid-cols-2">
         {data?.map((n) => (
-          <div key={n.id} className="glass-card p-5 transition hover:bg-white/[0.07]">
+          <div key={n.id} className="glass-card p-5 transition hover:-translate-y-0.5 hover:border-teal-400/30 hover:bg-white/[0.07]">
             <div className="flex items-center gap-2">
               <NoteTypeBadge type={n.type} />
               {/* 제목 클릭 → 상세 페이지 */}

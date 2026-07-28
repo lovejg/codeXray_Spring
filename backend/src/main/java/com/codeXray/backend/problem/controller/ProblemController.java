@@ -30,6 +30,12 @@ public class ProblemController {
         return problemService.search(keyword, source, tierMin, tierMax, tagId, pageable);
     }
 
+    // GET /api/problems/lookup?url=... → 붙여넣은 프로그래머스 URL로 문제 찾기
+    @GetMapping("/lookup")
+    public ProblemResponse lookup(@RequestParam String url) {
+        return problemService.lookupByUrl(url);
+    }
+
     // GET /api/problems/{id}
     @GetMapping("/{id}")
     public ProblemResponse detail(@PathVariable Long id) {

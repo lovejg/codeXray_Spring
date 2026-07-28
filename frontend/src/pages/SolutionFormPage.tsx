@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { solutionsApi, type UpsertMemoBody } from '../api/solutions'
 import { problemsApi } from '../api/problems'
 import type { Problem } from '../types'
 import { LANGUAGES, languageLabel } from '../lib/languages'
+import { detectLanguage } from '../lib/detectLanguage'
 import { apiErrorMessage } from '../lib/apiError'
 import Spinner from '../components/common/Spinner'
 import CodeEditor from '../components/common/CodeEditor'
@@ -35,9 +36,30 @@ export default function SolutionFormPage() {
   const [problem, setProblem] = useState<Problem | null>(null)
   const [code, setCode] = useState('')
   const [language, setLanguage] = useState('python')
+  const [autoDetected, setAutoDetected] = useState<string | null>(null) // 자동 감지 안내용
   const [memo, setMemo] = useState<UpsertMemoBody>({})
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
+
+  // 사용자가 언어를 직접 고르면 자동 감지 중단. 코드 길이 변화로 붙여넣기 판별.
+  const langTouched = useRef(false)
+  const prevLen = useRef(0)
+  // 확장에서 ?focus=memo 로 들어오면 메모 섹션을 자동으로 열고 스크롤
+  const memoRef = useRef<HTMLDetailsElement>(null)
+
+  // 코드 변경 처리: 큰 폭으로 늘었으면(=붙여넣기) 언어 자동 감지
+  function handleCodeChange(v: string) {
+    const delta = v.length - prevLen.current
+    prevLen.current = v.length
+    setCode(v)
+    if (!langTouched.current && delta >= 15) {
+      const detected = detectLanguage(v)
+      if (detected) {
+        setLanguage(detected)
+        setAutoDetected(detected)
+      }
+    }
+  }
 
   // 편집 데이터 반영
   useEffect(() => {
@@ -45,6 +67,8 @@ export default function SolutionFormPage() {
       setProblem(editing.problem)
       setCode(editing.code)
       setLanguage(editing.language)
+      langTouched.current = true // 저장된 언어를 자동 감지가 덮어쓰지 않도록
+      prevLen.current = editing.code.length
       setMemo({
         wrongReason: editing.memo?.wrongReason ?? '',
         logic: editing.memo?.logic ?? '',
@@ -57,6 +81,16 @@ export default function SolutionFormPage() {
   useEffect(() => {
     if (presetProblem) setProblem(presetProblem)
   }, [presetProblem])
+
+  // 확장에서 넘어온 경우(?focus=memo): 메모 섹션 펼치고 스크롤
+  useEffect(() => {
+    if (params.get('focus') !== 'memo') return
+    const el = memoRef.current
+    if (el) {
+      el.open = true
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, [params, editing])
 
   async function onSubmit() {
     if (!problem) { setError('문제를 선택해 주세요.'); return }
@@ -95,7 +129,7 @@ export default function SolutionFormPage() {
       <div className="mb-4">
         <label className="mb-1.5 block text-sm font-medium text-slate-400">문제</label>
         {problem ? (
-          <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-200">
+          <div className="flex items-center gap-2 rounded-md border border-slate-800 bg-slate-900/50 px-3 py-2.5 text-sm text-slate-200">
             {problem.title}
             {!isEdit && (
               <button onClick={() => setProblem(null)} className="ml-auto text-xs text-slate-500 hover:text-slate-300">변경</button>
@@ -108,18 +142,27 @@ export default function SolutionFormPage() {
 
       <div className="mb-4">
         <label className="mb-1.5 block text-sm font-medium text-slate-400">언어</label>
-        <select value={language} onChange={(e) => setLanguage(e.target.value)} className="rounded-xl border border-white/10 bg-slate-950/60 px-3 py-2 text-sm text-slate-200 outline-none transition focus:border-teal-400/70 focus:ring-2 focus:ring-teal-500/20">
-          {LANGUAGES.map((l) => <option key={l} value={l}>{languageLabel(l)}</option>)}
-        </select>
+        <div className="flex items-center gap-2">
+          <select
+            value={language}
+            onChange={(e) => { setLanguage(e.target.value); langTouched.current = true; setAutoDetected(null) }}
+            className="select-field"
+          >
+            {LANGUAGES.map((l) => <option key={l} value={l}>{languageLabel(l)}</option>)}
+          </select>
+          {autoDetected && (
+            <span className="font-mono text-xs text-teal-400">↳ 자동 감지됨 · 필요하면 바꿀 수 있어요</span>
+          )}
+        </div>
       </div>
 
       <div className="mb-4">
         <label className="mb-1.5 block text-sm font-medium text-slate-400">코드</label>
-        <CodeEditor value={code} onChange={setCode} language={language} placeholder="풀이 코드를 입력하거나 붙여넣으세요" />
+        <CodeEditor value={code} onChange={handleCodeChange} language={language} placeholder="풀이 코드를 입력하거나 붙여넣으세요" />
       </div>
 
       {/* 메모 (선택) */}
-      <details className="glass-card mb-4 p-4">
+      <details ref={memoRef} className="glass-card mb-4 p-4">
         <summary className="cursor-pointer text-sm text-slate-300">메모 (선택)</summary>
         <div className="mt-3 space-y-3">
           <MemoField label="틀린 이유" value={memo.wrongReason} onChange={(v) => setMemo((m) => ({ ...m, wrongReason: v }))} />

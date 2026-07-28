@@ -5,6 +5,7 @@ import { Pencil, Trash2, ArrowLeft } from 'lucide-react'
 import { notesApi } from '../api/notes'
 import { languageLabel } from '../lib/languages'
 import Spinner from '../components/common/Spinner'
+import EmptyState from '../components/common/EmptyState'
 import NoteTypeBadge from '../components/common/NoteTypeBadge'
 import TagBadge from '../components/common/TagBadge'
 import Markdown from '../components/common/Markdown'
@@ -33,7 +34,7 @@ export default function NoteDetailPage() {
   })
 
   if (isLoading) return <Spinner label="불러오는 중…" />
-  if (isError || !n) return <p className="py-10 text-center text-sm text-rose-400">노트를 찾을 수 없습니다.</p>
+  if (isError || !n) return <EmptyState tone="error" message="노트를 찾을 수 없습니다." />
 
   return (
     <div className="mx-auto max-w-3xl">

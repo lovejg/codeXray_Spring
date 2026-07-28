@@ -45,7 +45,7 @@ export default function CodeEditor({ value, onChange, placeholder, language, min
   const tabKeymap = keymap.of([indentWithTab as KeyBinding])
 
   return (
-    <div className="overflow-hidden rounded-xl border border-white/10 focus-within:border-teal-400/70 focus-within:ring-2 focus-within:ring-teal-500/20">
+    <div className="overflow-hidden rounded-lg border border-slate-800 transition focus-within:border-teal-400/60">
       <CodeMirror
         value={value}
         onChange={onChange}

@@ -70,7 +70,7 @@ export default function CommunityFormPage() {
       {!isEdit && (
         <div className="mb-3">
           <label className="mb-1.5 block text-sm font-medium text-slate-400">유형</label>
-          <select value={type} onChange={(e) => setType(e.target.value as PostType)} className="rounded-xl border border-white/10 bg-slate-950/60 px-3 py-2 text-sm text-slate-200 outline-none transition focus:border-teal-400/70 focus:ring-2 focus:ring-teal-500/20">
+          <select value={type} onChange={(e) => setType(e.target.value as PostType)} className="select-field">
             {COMMUNITY_POST_TYPES.map((t) => <option key={t} value={t}>{POST_TYPE_LABEL[t]}</option>)}
           </select>
         </div>
@@ -80,7 +80,7 @@ export default function CommunityFormPage() {
         <div className="mb-3">
           <label className="mb-1.5 block text-sm font-medium text-slate-400">연결할 문제 (선택)</label>
           {problem ? (
-            <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-200">
+            <div className="flex items-center gap-2 rounded-md border border-slate-800 bg-slate-900/50 px-3 py-2.5 text-sm text-slate-200">
               {problem.title}
               <button onClick={() => setProblem(null)} className="ml-auto text-xs text-slate-500 hover:text-slate-300">해제</button>
             </div>

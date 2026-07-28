@@ -4,6 +4,7 @@ import { Star, Pencil, Trash2, ArrowLeft } from 'lucide-react'
 import { solutionsApi } from '../api/solutions'
 import { languageLabel } from '../lib/languages'
 import Spinner from '../components/common/Spinner'
+import EmptyState from '../components/common/EmptyState'
 import TierBadge from '../components/common/TierBadge'
 import CodeBlock from '../components/common/CodeBlock'
 import AiAnalyzePanel from '../components/common/AiAnalyzePanel'
@@ -37,7 +38,7 @@ export default function SolutionDetailPage() {
   })
 
   if (isLoading) return <Spinner label="불러오는 중…" />
-  if (isError || !s) return <p className="py-10 text-center text-sm text-rose-400">풀이를 찾을 수 없습니다.</p>
+  if (isError || !s) return <EmptyState tone="error" message="풀이를 찾을 수 없습니다." />
 
   const memo = s.memo
   const hasMemo = memo && (memo.wrongReason || memo.logic || memo.keyFunctions || memo.freeNote)

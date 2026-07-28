@@ -36,7 +36,7 @@ export default function Modal({ open, onClose, title, children, size = 'md' }: P
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-base font-semibold text-white">{title}</h2>
+          <h2 className="font-mono text-base font-semibold text-white">{title}</h2>
           <button onClick={onClose} className="text-slate-500 hover:text-white" aria-label="닫기">
             <X size={18} />
           </button>

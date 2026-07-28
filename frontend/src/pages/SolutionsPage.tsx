@@ -7,6 +7,7 @@ import type { Solution } from '../types'
 import { languageLabel } from '../lib/languages'
 import PageHeader from '../components/common/PageHeader'
 import Spinner from '../components/common/Spinner'
+import EmptyState from '../components/common/EmptyState'
 import TierBadge from '../components/common/TierBadge'
 
 export default function SolutionsPage() {
@@ -42,7 +43,7 @@ export default function SolutionsPage() {
       {isLoading && <Spinner label="불러오는 중…" />}
 
       {data && data.length === 0 && (
-        <p className="py-16 text-center text-sm text-slate-500">아직 등록한 풀이가 없습니다.</p>
+        <EmptyState message="아직 등록한 풀이가 없습니다" hint="문제를 풀고 풀이를 등록해 보세요." />
       )}
 
       <div className="space-y-4">
@@ -63,7 +64,7 @@ function SolutionCard({ s, onStar, onDelete }: { s: Solution; onStar: () => void
   const hasMemo = s.memo && (s.memo.wrongReason || s.memo.logic || s.memo.keyFunctions || s.memo.freeNote)
 
   return (
-    <div className="glass-card flex items-center gap-3 p-4 transition hover:bg-white/[0.07]">
+    <div className="glass-card flex items-center gap-3 p-4 transition hover:-translate-y-0.5 hover:border-teal-400/30 hover:bg-white/[0.07]">
       <button onClick={onStar} className={s.starred ? 'text-amber-400' : 'text-slate-600 hover:text-slate-400'} aria-label="별표">
         <Star size={18} fill={s.starred ? 'currentColor' : 'none'} />
       </button>

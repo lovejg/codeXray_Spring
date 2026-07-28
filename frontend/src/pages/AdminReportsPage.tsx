@@ -5,6 +5,7 @@ import { communityApi } from '../api/community'
 import { REPORT_STATUS_LABEL, REPORT_STATUS_COLOR, type Report, type ReportStatus } from '../types'
 import { timeAgo } from '../lib/date'
 import Spinner from '../components/common/Spinner'
+import EmptyState from '../components/common/EmptyState'
 import PostTypeBadge from '../components/common/PostTypeBadge'
 import AuthorName from '../components/common/AuthorName'
 
@@ -20,7 +21,7 @@ export default function AdminReportsPage() {
     <div>
       <div className="mb-5 flex items-center gap-3">
         <h1 className="page-title">신고함</h1>
-        <select value={status} onChange={(e) => setStatus(e.target.value as ReportStatus | '')} className="rounded-xl border border-white/10 bg-slate-950/60 px-3 py-2 text-sm text-slate-200 outline-none transition focus:border-teal-400/70 focus:ring-2 focus:ring-teal-500/20">
+        <select value={status} onChange={(e) => setStatus(e.target.value as ReportStatus | '')} className="select-field">
           <option value="">전체</option>
           <option value="OPEN">{REPORT_STATUS_LABEL.OPEN}</option>
           <option value="HANDLED">{REPORT_STATUS_LABEL.HANDLED}</option>
@@ -29,7 +30,7 @@ export default function AdminReportsPage() {
       </div>
 
       {isLoading && <Spinner label="불러오는 중…" />}
-      {data && data.length === 0 && <p className="py-16 text-center text-sm text-slate-500">신고가 없습니다.</p>}
+      {data && data.length === 0 && <EmptyState message="신고가 없습니다" />}
 
       <div className="space-y-3">
         {data?.map((r) => <ReportCard key={r.id} report={r} />)}
@@ -77,10 +78,10 @@ function ReportCard({ report }: { report: Report }) {
         <div className="mt-3 space-y-2">
           <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="관리자 메모(선택)" className="input-field" />
           <div className="flex flex-wrap gap-2">
-            <button onClick={() => hide.mutate(true)} className="rounded-xl border border-amber-700/60 bg-amber-500/10 px-3.5 py-2 text-sm text-amber-300 transition hover:bg-amber-500/20">
+            <button onClick={() => hide.mutate(true)} className="rounded-md border border-amber-700/60 bg-amber-500/10 px-3.5 py-2 font-mono text-sm text-amber-300 transition hover:bg-amber-500/20">
               게시글 숨김
             </button>
-            <button onClick={() => resolve.mutate('HANDLED')} className="rounded-xl border border-emerald-700/60 bg-emerald-500/10 px-3.5 py-2 text-sm text-emerald-300 transition hover:bg-emerald-500/20">
+            <button onClick={() => resolve.mutate('HANDLED')} className="rounded-md border border-emerald-700/60 bg-emerald-500/10 px-3.5 py-2 font-mono text-sm text-emerald-300 transition hover:bg-emerald-500/20">
               처리 완료
             </button>
             <button onClick={() => resolve.mutate('DISMISSED')} className="btn-ghost px-3.5 py-2">

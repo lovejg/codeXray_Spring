@@ -63,10 +63,10 @@ export default function FeedbackWidget({ problemId }: { problemId: number }) {
               key={lv}
               onClick={() => mutation.mutate(lv)}
               disabled={mutation.isPending}
-              className={`h-10 w-10 rounded-xl border text-sm font-semibold transition ${
+              className={`h-10 w-10 rounded-md border font-mono text-sm font-semibold transition ${
                 active
                   ? 'border-teal-500 bg-teal-500/20 text-teal-300'
-                  : 'border-white/10 bg-white/5 text-slate-300 hover:border-white/25'
+                  : 'border-slate-800 bg-slate-900/50 text-slate-300 hover:border-teal-400/40'
               }`}
             >
               {lv}

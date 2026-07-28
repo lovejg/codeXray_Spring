@@ -48,7 +48,7 @@ export default function ProfilePage() {
 
       <div className="mt-4 flex gap-2">
         <button onClick={() => setPwOpen(true)} className="btn-ghost">비밀번호 변경</button>
-        <button onClick={() => setDelOpen(true)} className="ml-auto rounded-xl border border-rose-800/60 px-5 py-2.5 text-sm text-rose-400 transition hover:bg-rose-950/40">회원 탈퇴</button>
+        <button onClick={() => setDelOpen(true)} className="ml-auto rounded-md border border-rose-800/60 px-5 py-2.5 font-mono text-sm text-rose-400 transition hover:bg-rose-950/40">회원 탈퇴</button>
       </div>
 
       {pwOpen && <PasswordModal onClose={() => setPwOpen(false)} />}
@@ -59,7 +59,7 @@ export default function ProfilePage() {
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between border-b border-white/10 py-2.5 last:border-0">
+    <div className="flex items-center justify-between border-b border-slate-800 py-2.5 last:border-0">
       <span className="text-sm text-slate-500">{label}</span>
       {children}
     </div>
@@ -130,7 +130,7 @@ function WithdrawModal({ onClose }: { onClose: () => void }) {
       {err && <p className="mt-2 text-sm text-rose-400">{err}</p>}
       <div className="mt-4 flex justify-end gap-2">
         <button onClick={onClose} className="btn-ghost px-4 py-2">취소</button>
-        <button onClick={confirmDelete} className="rounded-xl bg-rose-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-rose-400">탈퇴</button>
+        <button onClick={confirmDelete} className="rounded-md bg-rose-500 px-4 py-2 font-mono text-sm font-semibold text-white transition hover:bg-rose-400">탈퇴</button>
       </div>
     </Modal>
   )

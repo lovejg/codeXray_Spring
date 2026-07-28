@@ -7,6 +7,7 @@ import { useAuthStore, useIsAdmin } from '../store/authStore'
 import { timeAgo } from '../lib/date'
 import { VOTABLE_POST_TYPES } from '../types'
 import Spinner from '../components/common/Spinner'
+import EmptyState from '../components/common/EmptyState'
 import Markdown from '../components/common/Markdown'
 import PostTypeBadge from '../components/common/PostTypeBadge'
 import AuthorName from '../components/common/AuthorName'
@@ -39,7 +40,7 @@ export default function CommunityPostPage() {
   })
 
   if (isLoading) return <Spinner label="불러오는 중…" />
-  if (isError || !post) return <p className="py-10 text-center text-sm text-rose-400">게시글을 볼 수 없습니다.</p>
+  if (isError || !post) return <EmptyState tone="error" message="게시글을 볼 수 없습니다." />
 
   const isOwner = user && post.author.id === user.id
   const votable = VOTABLE_POST_TYPES.includes(post.type)
@@ -125,7 +126,7 @@ function CommentSection({ postId, comments, canComment }: { postId: number; comm
         {comments.map((c) => {
           const owner = user && c.author.id === user.id
           return (
-            <div key={c.id} className="rounded-xl border border-white/10 bg-white/5 p-3">
+            <div key={c.id} className="rounded-lg border border-slate-800 bg-slate-900/50 p-3">
               <div className="flex items-center gap-2 text-xs text-slate-500">
                 <AuthorName author={c.author} />
                 <span>·</span>

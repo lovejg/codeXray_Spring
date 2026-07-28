@@ -32,7 +32,7 @@ export default function SuggestionFormPage() {
 
       <div className="mb-3">
         <label className="mb-1.5 block text-sm font-medium text-slate-400">유형</label>
-        <select value={type} onChange={(e) => setType(e.target.value as PostType)} className="rounded-xl border border-white/10 bg-slate-950/60 px-3 py-2 text-sm text-slate-200 outline-none transition focus:border-teal-400/70 focus:ring-2 focus:ring-teal-500/20">
+        <select value={type} onChange={(e) => setType(e.target.value as PostType)} className="select-field">
           {SUGGESTION_POST_TYPES.map((t) => <option key={t} value={t}>{POST_TYPE_LABEL[t]}</option>)}
         </select>
       </div>

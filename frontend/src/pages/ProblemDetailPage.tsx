@@ -5,6 +5,7 @@ import { problemsApi } from '../api/problems'
 import { solutionsApi } from '../api/solutions'
 import { useAuthStore } from '../store/authStore'
 import Spinner from '../components/common/Spinner'
+import EmptyState from '../components/common/EmptyState'
 import TierBadge from '../components/common/TierBadge'
 import LevelBadge from '../components/common/LevelBadge'
 import SourceBadge from '../components/common/SourceBadge'
@@ -31,7 +32,7 @@ export default function ProblemDetailPage() {
   const mySolution = mySolutions?.find((s) => s.problem.id === problemId) ?? null
 
   if (isLoading) return <Spinner label="불러오는 중…" />
-  if (isError || !problem) return <p className="py-10 text-center text-sm text-rose-400">문제를 찾을 수 없습니다.</p>
+  if (isError || !problem) return <EmptyState tone="error" message="문제를 찾을 수 없습니다." />
 
   return (
     <div className="mx-auto max-w-3xl">

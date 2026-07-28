@@ -1,8 +1,10 @@
-export default function Spinner({ label }: { label?: string }) {
+// 터미널풍 로딩 표시: `$ 불러오는 중… ▊` (깜빡이는 커서)
+export default function Spinner({ label = '불러오는 중…' }: { label?: string }) {
   return (
-    <div className="flex items-center justify-center gap-3 py-16 text-slate-400">
-      <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-slate-600 border-t-sky-400" />
-      {label && <span className="text-sm">{label}</span>}
+    <div className="flex items-center justify-center py-16 font-mono text-sm text-slate-400">
+      <span className="text-teal-400">$</span>
+      <span className="ml-2">{label}</span>
+      <span className="cursor-blink ml-0.5 text-teal-400">▊</span>
     </div>
   )
 }

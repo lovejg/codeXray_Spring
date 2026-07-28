@@ -147,7 +147,7 @@ export default function ProblemsPage() {
                   </tr>
                 ))}
                 {data.items.length === 0 && (
-                  <tr><td colSpan={4} className="px-4 py-14 text-center text-slate-500">조건에 맞는 문제가 없습니다.</td></tr>
+                  <tr><td colSpan={4} className="px-4 py-14 text-center font-mono text-sm text-slate-500"><span className="text-slate-600">// </span>조건에 맞는 문제가 없습니다</td></tr>
                 )}
               </tbody>
             </table>

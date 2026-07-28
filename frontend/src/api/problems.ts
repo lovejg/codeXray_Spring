@@ -19,4 +19,8 @@ export const problemsApi = {
       .then((r) => r.data),
 
   get: (id: number) => client.get<Problem>(`/problems/${id}`).then((r) => r.data),
+
+  // 붙여넣은 프로그래머스 URL로 문제 하나를 찾음 (없으면 404)
+  lookupByUrl: (url: string) =>
+    client.get<Problem>('/problems/lookup', { params: { url } }).then((r) => r.data),
 }

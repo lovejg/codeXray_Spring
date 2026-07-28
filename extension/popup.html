@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      body {
+        width: 260px;
+        margin: 0;
+        padding: 16px;
+        background: #0a0d13;
+        color: #c8d2e0;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 13px;
+      }
+      .logo { color: #2dd4bf; font-weight: 700; margin-bottom: 14px; font-size: 15px; }
+      label { display: block; margin: 8px 0 3px; color: #8895a7; font-size: 11px; }
+      input {
+        width: 100%; box-sizing: border-box; padding: 7px 9px; margin-bottom: 4px;
+        background: #020617; border: 1px solid #1e293b; border-radius: 6px;
+        color: #e2e8f0; font-family: inherit; font-size: 13px; outline: none;
+      }
+      input:focus { border-color: #2dd4bf; }
+      button {
+        width: 100%; padding: 8px; margin-top: 8px; border: none; border-radius: 6px;
+        background: #2dd4bf; color: #0a0d13; font-family: inherit; font-weight: 700;
+        font-size: 13px; cursor: pointer;
+      }
+      button.ghost { background: transparent; border: 1px solid #334155; color: #94a3b8; }
+      .msg { margin-top: 8px; font-size: 11px; min-height: 14px; }
+      .err { color: #f87171; }
+      .ok { color: #2dd4bf; }
+      .hint { color: #64748b; font-size: 10px; margin-top: 10px; line-height: 1.5; }
+    </style>
+  </head>
+  <body>
+    <div class="logo">❯ codeXray</div>
+
+    <div id="connected" style="display: none">
+      <div>연결됨: <span id="nickname" class="ok"></span></div>
+      <button id="logout" class="ghost">로그아웃</button>
+    </div>
+
+    <form id="loginForm">
+      <label>이메일</label>
+      <input id="email" type="email" required placeholder="you@example.com" />
+      <label>비밀번호</label>
+      <input id="password" type="password" required placeholder="••••••••" />
+      <button type="submit" id="submit">로그인</button>
+    </form>
+
+    <div id="msg" class="msg"></div>
+    <div class="hint">프로그래머스 문제 페이지에서 우측 하단 버튼으로 풀이를 저장할 수 있어요.</div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

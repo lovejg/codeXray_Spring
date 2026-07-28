@@ -7,6 +7,7 @@ import { useAuthStore, useIsAdmin } from '../store/authStore'
 import { timeAgo } from '../lib/date'
 import { STATUS_LABEL, type SuggestionStatus } from '../types'
 import Spinner from '../components/common/Spinner'
+import EmptyState from '../components/common/EmptyState'
 import Markdown from '../components/common/Markdown'
 import PostTypeBadge from '../components/common/PostTypeBadge'
 import StatusBadge from '../components/common/StatusBadge'
@@ -32,7 +33,7 @@ export default function SuggestionPostPage() {
   })
 
   if (isLoading) return <Spinner label="불러오는 중…" />
-  if (isError || !post) return <p className="py-10 text-center text-sm text-rose-400">게시글을 볼 수 없습니다.</p>
+  if (isError || !post) return <EmptyState tone="error" message="게시글을 볼 수 없습니다." />
 
   const isOwner = user && post.author.id === user.id
 
@@ -110,7 +111,7 @@ function AdminControls({ postId, status, adminReply }: { postId: number; status?
           <button
             key={s}
             onClick={() => setStatus.mutate(s)}
-            className={`rounded-xl border px-3.5 py-2 text-sm transition ${status === s ? 'border-teal-500 bg-teal-500/20 text-teal-300' : 'border-white/10 text-slate-300 hover:bg-white/5'}`}
+            className={`rounded-md border px-3.5 py-2 font-mono text-sm transition ${status === s ? 'border-teal-500 bg-teal-500/20 text-teal-300' : 'border-slate-800 text-slate-300 hover:bg-white/5'}`}
           >
             {STATUS_LABEL[s]}
           </button>

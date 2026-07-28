@@ -113,7 +113,7 @@ export function AuthShell({ title, children }: { title: string; children: React.
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-sm">
-        <Link to="/problems" className="mb-8 flex items-center justify-center gap-2 font-mono text-3xl font-bold tracking-tight">
+        <Link to="/" className="mb-8 flex items-center justify-center gap-2 font-mono text-3xl font-bold tracking-tight">
           <span className="text-teal-400">❯</span>
           <span className="text-white">code<span className="text-teal-400">Xray</span></span>
           <span className="cursor-blink -ml-1 text-teal-400">▊</span>
