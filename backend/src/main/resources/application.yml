@@ -30,6 +30,21 @@ spring:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
 
+  # Kafka — AI 분석 비동기 처리. jobId 를 String 메시지로 주고받음.
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: codexray-ai
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    listener:
+      # 브로커/토픽이 아직 없어도 앱이 죽지 않게(로컬 개발 편의)
+      missing-topics-fatal: false
+
   # SMTP 발송 설정. MAIL_MODE=smtp 일 때만 실제 사용됨(console 모드면 무시).
   # Gmail 기준 기본값: smtp.gmail.com:587 (STARTTLS). SMTP_USER/PASS 는 .env에서.
   mail:
@@ -59,6 +74,9 @@ app:
     mode: ${MAIL_MODE}
     from: ${MAIL_FROM}
   base-url: ${APP_BASE_URL}
+  cors:
+    # 교차 오리진 허용 목록(콤마 구분). 비우면 same-origin 배포 전제.
+    allowed-origins: ${APP_CORS_ORIGINS:}
   admin:
     email: ${ADMIN_EMAIL}
     api-key: ${ADMIN_API_KEY}
@@ -67,6 +85,8 @@ app:
     api-key: ${ANTHROPIC_API_KEY:}
   ai:
     daily-limit: ${AI_DAILY_LIMIT:2}   # 사용자당 1일 분석 횟수
+  kafka:
+    ai-topic: ${AI_JOBS_TOPIC:ai-jobs} # AI 작업 이벤트 토픽
   oauth:
     google:
       client-id: ${GOOGLE_CLIENT_ID:}

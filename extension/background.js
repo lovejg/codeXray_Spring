@@ -5,7 +5,8 @@
 //  3) 풀이 저장(POST /solutions) — Bearer, 401이면 refresh 후 1회 재시도
 // 확장은 host_permissions 덕에 background에서 CORS 없이 localhost 호출 가능.
 // ─────────────────────────────────────────────────────────────
-const API = 'http://localhost:8080/api'
+importScripts('config.js') // CODEXRAY_API 전역 로드
+const API = CODEXRAY_API
 
 // ── 페이지 컨텍스트(MAIN world)에서 실행될 추출 함수 (self-contained) ──
 function extractInPage() {

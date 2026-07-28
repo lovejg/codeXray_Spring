@@ -1,8 +1,12 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios'
 import { clearAccessToken, getAccessToken, setAccessToken } from '../lib/tokens'
 
+// 기본은 '/api'(dev: Vite 프록시, prod: 백엔드와 same-origin).
+// 다른 오리진 배포 시 VITE_API_BASE 로 백엔드 절대주소 지정(예: https://api.example.com/api).
+const API_BASE = (import.meta.env.VITE_API_BASE as string | undefined) ?? '/api'
+
 const client = axios.create({
-  baseURL: '/api',
+  baseURL: API_BASE,
   withCredentials: true, // refresh httpOnly 쿠키 전송
 })
 
@@ -18,7 +22,7 @@ let refreshPromise: Promise<string> | null = null
 async function refreshAccessToken(): Promise<string> {
   // refresh 토큰은 httpOnly 쿠키에 있으므로 body 없이 호출. 인터셉터 재귀 방지로 raw axios 사용.
   const { data } = await axios.post<{ accessToken: string }>(
-    '/api/auth/refresh',
+    `${API_BASE}/auth/refresh`,
     {},
     { withCredentials: true },
   )

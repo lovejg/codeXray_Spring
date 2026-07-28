@@ -1,6 +1,6 @@
 // 팝업: codeXray 로그인 → accessToken을 chrome.storage에 저장.
 // 확장 페이지도 host_permissions 덕에 localhost API를 CORS 없이 호출 가능.
-const API = 'http://localhost:8080/api'
+const API = CODEXRAY_API // config.js (popup.html 에서 먼저 로드)
 
 const $ = (id) => document.getElementById(id)
 

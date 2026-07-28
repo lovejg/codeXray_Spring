@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Sparkles } from 'lucide-react'
-import { aiApi, type AiTask } from '../../api/ai'
+import { aiApi, pollAiJob, type AiTask } from '../../api/ai'
 import { apiErrorCode, apiErrorMessage } from '../../lib/apiError'
 import Markdown from './Markdown'
 
@@ -17,9 +17,18 @@ export default function AiAnalyzePanel({ code, language, problemTitle }: { code:
     setError('')
     setResult('')
     try {
-      const md = await aiApi.analyze({ task: t, code, language, problemTitle })
-      setResult(md)
+      const created = await aiApi.analyze({ task: t, code, language, problemTitle })
+      const job = await pollAiJob(created.id) // 컨슈머가 처리 완료할 때까지 폴링
+      if (job.status === 'DONE') {
+        setResult(job.result ?? '')
+      } else {
+        setError(job.errorCode === 'AI_UNAVAILABLE' ? 'AI 기능을 현재 사용할 수 없습니다.' : 'AI 분석에 실패했습니다.')
+      }
     } catch (err) {
+      if (err instanceof Error && err.message === 'TIMEOUT') {
+        setError('처리가 지연되고 있어요. 잠시 후 다시 시도해 주세요.')
+        return
+      }
       const codeStr = apiErrorCode(err)
       if (codeStr === 'AI_RATE_LIMIT_EXCEEDED') {
         setError('오늘 AI 분석 한도를 모두 사용했습니다. 내일 다시 시도해 주세요.')

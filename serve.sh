@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Keeps this shell alive (foreground vite) so the WSL session/distro stays up.
-docker start codexray-db codexray-redis >/dev/null 2>&1
+docker start codexray-db codexray-redis codexray-kafka >/dev/null 2>&1
 cd ~/spring/codeXray/backend
 ./gradlew bootRun --console=plain > /tmp/run_back.log 2>&1 &
 BACK=$!

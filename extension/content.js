@@ -9,7 +9,7 @@
   if (window.__codexrayInjected) return
   window.__codexrayInjected = true
 
-  const APP_ORIGIN = 'http://localhost:5173'
+  const APP_ORIGIN = CODEXRAY_APP_ORIGIN // config.js (manifest 에서 먼저 로드)
   const LABEL = '❯ 저장'
   let btn = null
 

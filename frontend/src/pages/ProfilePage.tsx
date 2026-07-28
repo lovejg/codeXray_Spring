@@ -4,6 +4,8 @@ import { usersApi } from '../api/users'
 import { useAuthStore } from '../store/authStore'
 import { apiErrorMessage } from '../lib/apiError'
 import Modal from '../components/common/Modal'
+import DashboardStats from '../components/common/DashboardStats'
+import Avatar from '../components/common/Avatar'
 
 export default function ProfilePage() {
   const user = useAuthStore((s) => s.user)
@@ -28,10 +30,18 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="mx-auto max-w-xl">
+    <div>
       <h1 className="page-title mb-5">프로필</h1>
 
-      <div className="glass-card p-6">
+      <div className="glass-card max-w-xl p-6">
+        <div className="mb-5 flex items-center gap-3 border-b border-slate-800 pb-5">
+          <Avatar name={user.nickname} size={52} />
+          <div className="min-w-0">
+            <div className="truncate font-mono text-lg font-bold text-white">{user.nickname}</div>
+            <div className="truncate text-sm text-slate-500">{user.email}</div>
+          </div>
+        </div>
+
         <Row label="이메일"><span className="text-slate-200">{user.email}</span></Row>
         <Row label="권한"><span className="text-slate-400">{user.role === 'ADMIN' ? '관리자' : '일반 회원'}</span></Row>
 
@@ -46,10 +56,14 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      <div className="mt-4 flex gap-2">
+      <div className="mt-4 flex max-w-xl gap-2">
         <button onClick={() => setPwOpen(true)} className="btn-ghost">비밀번호 변경</button>
         <button onClick={() => setDelOpen(true)} className="ml-auto rounded-md border border-rose-800/60 px-5 py-2.5 font-mono text-sm text-rose-400 transition hover:bg-rose-950/40">회원 탈퇴</button>
       </div>
+
+      {/* 내 활동 통계 */}
+      <p className="section-title mb-4 mt-12">// 내 활동</p>
+      <DashboardStats />
 
       {pwOpen && <PasswordModal onClose={() => setPwOpen(false)} />}
       {delOpen && <WithdrawModal onClose={() => setDelOpen(false)} />}

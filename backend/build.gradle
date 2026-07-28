@@ -30,6 +30,11 @@ dependencies {
 	// Redis — refresh token 저장소
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
+	// Kafka — AI 분석 비동기 처리(이벤트 발행/구독)
+	// Boot 4는 auto-config가 모듈로 분리됨 → 라이브러리(spring-kafka)만으론 자동설정 안 붙어
+	// starter 필요(@KafkaListener/KafkaAdmin/KafkaTemplate 자동설정 포함)
+	implementation 'org.springframework.boot:spring-boot-starter-kafka'
+
 	// Mail — 이메일 인증 발송 (Node의 nodemailer)
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
 

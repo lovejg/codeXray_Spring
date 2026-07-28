@@ -11,6 +11,7 @@ import LevelBadge from '../components/common/LevelBadge'
 import SourceBadge from '../components/common/SourceBadge'
 import TagBadge from '../components/common/TagBadge'
 import FeedbackWidget from '../components/common/FeedbackWidget'
+import AiHintPanel from '../components/common/AiHintPanel'
 
 export default function ProblemDetailPage() {
   const { id } = useParams()
@@ -79,6 +80,13 @@ export default function ProblemDetailPage() {
               <Pencil size={16} /> 이 문제 풀이 작성
             </Link>
           )}
+        </div>
+      )}
+
+      {/* AI 힌트 — 안 풀릴 때 정답 없이 단계별 힌트 */}
+      {user && (
+        <div className="mt-4">
+          <AiHintPanel problemId={problem.id} />
         </div>
       )}
 

@@ -6,6 +6,7 @@ import { SOURCE_LABEL, type ProblemSource } from '../types'
 import { TIER_ORDER, tierLabel } from '../lib/tier'
 import { useDebouncedValue } from '../lib/useDebouncedValue'
 import PageHeader from '../components/common/PageHeader'
+import RecommendationStrip from '../components/common/RecommendationStrip'
 import Spinner from '../components/common/Spinner'
 import TierBadge from '../components/common/TierBadge'
 import LevelBadge from '../components/common/LevelBadge'
@@ -72,6 +73,8 @@ export default function ProblemsPage() {
       <PageHeader title="문제" subtitle="티어·출처·태그로 원하는 문제를 찾아보세요.">
         {data && <span className="text-sm text-slate-400">총 {data.total.toLocaleString()}문제</span>}
       </PageHeader>
+
+      <RecommendationStrip />
 
       {/* 필터 바 */}
       <div className="mb-5 flex flex-wrap items-center gap-2">

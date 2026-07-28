@@ -1,6 +1,7 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAuthStore, useIsAdmin } from '../../store/authStore'
 import NotificationBell from './NotificationBell'
+import Avatar from '../common/Avatar'
 
 const navItems = [
   { to: '/problems', label: '문제' },
@@ -66,9 +67,11 @@ export default function Navbar() {
               <NotificationBell />
               <Link
                 to="/profile"
-                className="rounded-md px-3 py-1.5 text-sm text-slate-300 transition hover:bg-white/5 hover:text-white"
+                title="프로필"
+                className="flex items-center gap-2 rounded-full border border-slate-800 bg-slate-900/50 py-1 pl-1 pr-3 text-sm text-slate-300 transition hover:border-teal-400/50 hover:bg-white/5 hover:text-white"
               >
-                <span className="text-teal-400/70">@</span>{user.nickname}
+                <Avatar name={user.nickname} size={28} />
+                <span className="max-w-[9rem] truncate">{user.nickname}</span>
               </Link>
               <button
                 onClick={handleLogout}
