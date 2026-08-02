@@ -1,0 +1,7 @@
+# 이미지 빌드 시 제외 (node_modules 는 이미지 안에서 새로 설치하므로 복사 금지 → 빌드 빠름/작음)
+node_modules
+dist
+.env
+.env.*
+!.env.example
+.idea

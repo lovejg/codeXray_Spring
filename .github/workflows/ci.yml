@@ -1,0 +1,72 @@
+name: CI
+
+# 언제 돌릴지: master 로 push 되거나, master 를 향한 PR 이 생길 때.
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  backend-test:
+    name: Backend build & test
+    runs-on: ubuntu-latest
+
+    # 테스트가 앱 전체를 부팅(contextLoads)하므로 진짜 Postgres 가 필요.
+    # GitHub 이 임시 컨테이너로 띄워주고, job 에서는 localhost:5432 로 접속 가능.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: codexray
+          POSTGRES_USER: codexray
+          POSTGRES_PASSWORD: codexray
+        ports:
+          - 5432:5432
+        # DB 가 "준비됨" 상태가 될 때까지 기다렸다가 테스트 시작.
+        options: >-
+          --health-cmd "pg_isready -U codexray"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      # 1) 저장소 코드 체크아웃
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2) JDK 21 설치 (+ Gradle 캐시로 다음 실행 빠르게)
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      # 3) gradlew 실행권한 부여 (윈도우에서 커밋되면 실행비트가 빠질 수 있음)
+      - name: Grant execute permission for gradlew
+        working-directory: backend
+        run: chmod +x gradlew
+
+      # 4) 테스트 실행. 앱 부팅에 필요한 값들을 더미로 주입.
+      #    (실제 배포값이 아니라 CI 전용 가짜값 — 여기선 아무거나 형식만 맞으면 됨)
+      - name: Run tests
+        working-directory: backend
+        env:
+          DB_URL: jdbc:postgresql://localhost:5432/codexray
+          DB_USERNAME: codexray
+          DB_PASSWORD: codexray
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          KAFKA_BOOTSTRAP_SERVERS: localhost:9092
+          # JWT_SECRET 은 HMAC-SHA 키라서 최소 32바이트(=32글자) 이상이어야 함.
+          JWT_SECRET: ci-dummy-secret-key-please-change-0123456789
+          JWT_ACCESS_EXPIRATION_MS: 1800000
+          REFRESH_EXPIRATION_DAYS: 14
+          COOKIE_SECURE: false
+          MAIL_MODE: console
+          MAIL_FROM: noreply@codexray.local
+          APP_BASE_URL: http://localhost:8080
+          ADMIN_EMAIL: admin@codexray.local
+          ADMIN_API_KEY: ci-dummy-admin-key
+        run: ./gradlew test --no-daemon

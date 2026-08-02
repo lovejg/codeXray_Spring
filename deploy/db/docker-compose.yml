@@ -1,0 +1,54 @@
+# DB EC2 전용 스택: Postgres + Redis + Kafka.
+# Main EC2 가 이 서버의 private IP 로 접속한다 (같은 VPC 내부망).
+#
+# 실행:  docker compose up -d
+# (같은 폴더의 .env 를 compose 가 자동으로 읽음 → .env.example 참고)
+
+services:
+  db:
+    image: postgres:16
+    container_name: codexray-db
+    environment:
+      POSTGRES_DB: codexray
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5432:5432"          # Main 이 private IP:5432 로 접속
+    volumes:
+      - codexray-db-data:/var/lib/postgresql/data   # 데이터 영속화(컨테이너 지워도 유지)
+    restart: unless-stopped
+
+  redis:
+    image: redis:7
+    container_name: codexray-redis
+    # 다른 호스트(Main)에서 접속하므로 protected-mode 해제. 보안은 보안그룹이 담당.
+    command: ["redis-server", "--protected-mode", "no"]
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  # Kafka (KRaft 단일 노드). ★ ADVERTISED 주소가 이번 배포의 핵심 ★
+  kafka:
+    image: apache/kafka:3.9.0
+    container_name: codexray-kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      # Main 이 접속할 주소 = DB EC2 의 private IP. 반드시 실제 값으로 채워야 함!
+      # (localhost/컨테이너명으로 두면 Main 이 Kafka 에 재접속 못 함)
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://${DB_PRIVATE_IP}:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    restart: unless-stopped
+
+volumes:
+  codexray-db-data:
