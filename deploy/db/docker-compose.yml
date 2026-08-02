@@ -34,6 +34,8 @@ services:
     ports:
       - "9092:9092"
     environment:
+      # ★ Kafka 기본 힙은 -Xmx1G 라서 작은 인스턴스에선 OOM 유발. 512m 로 제한.
+      KAFKA_HEAP_OPTS: "-Xmx512m -Xms256m"
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093

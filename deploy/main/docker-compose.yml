@@ -1,0 +1,41 @@
+# Main EC2 스택: frontend(nginx) + backend.
+# 이미지는 GHCR 에서 pull. backend 는 .env 로 DB EC2(private IP)에 접속.
+#
+# 실행:  docker compose pull && docker compose up -d
+# (같은 폴더의 .env 를 compose 가 자동으로 읽음 → .env.example 참고)
+
+services:
+  backend:
+    image: ghcr.io/lovejg/codexray-backend:latest
+    container_name: codexray-backend
+    env_file: .env
+    # 외부에 직접 노출하지 않음. 같은 docker 네트워크의 nginx 만 8080 으로 접근.
+    expose:
+      - "8080"
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"   # watchtower 자동업데이트 대상
+    restart: unless-stopped
+
+  frontend:
+    image: ghcr.io/lovejg/codexray-frontend:latest
+    container_name: codexray-frontend
+    # nginx 가 정적파일 서빙 + /api 를 backend:8080 으로 프록시 (same-origin).
+    ports:
+      - "80:80"          # 외부에서 http://<Main public IP> 로 접속
+    depends_on:
+      - backend
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"   # watchtower 자동업데이트 대상
+    restart: unless-stopped
+
+  # 자동배포(풀 방식): GHCR 의 :latest 가 바뀌면 알아서 pull + 컨테이너 교체.
+  # inbound 불필요(Main 이 나가서 확인) → SSH 잠금 유지. public 이미지라 인증도 불필요.
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock   # 도커 제어용 소켓
+    # --interval 120: 2분마다 확인 / --cleanup: 교체 후 옛 이미지 삭제(디스크 절약)
+    # --label-enable: 아래 label 붙은 컨테이너만 감시(watchtower 자신·불필요 대상 제외)
+    command: --interval 120 --cleanup --label-enable
+    restart: unless-stopped
