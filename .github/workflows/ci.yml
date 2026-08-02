@@ -1,4 +1,4 @@
-name: CI
+name: CI / CD
 
 # 언제 돌릴지: master 로 push 되거나, master 를 향한 PR 이 생길 때.
 on:
@@ -6,6 +6,11 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+
+# 이미지를 GHCR(GitHub 이미지 창고)에 올리려면 packages 쓰기 권한이 필요.
+permissions:
+  contents: read
+  packages: write
 
 jobs:
   backend-test:
@@ -33,11 +38,11 @@ jobs:
     steps:
       # 1) 저장소 코드 체크아웃
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # 2) JDK 21 설치 (+ Gradle 캐시로 다음 실행 빠르게)
       - name: Set up JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '21'
@@ -70,3 +75,56 @@ jobs:
           ADMIN_EMAIL: admin@codexray.local
           ADMIN_API_KEY: ci-dummy-admin-key
         run: ./gradlew test --no-daemon
+
+  # ── 이미지 빌드 & GHCR 업로드 ──
+  # 테스트(backend-test)가 통과해야만 실행되고, master 로 "push" 될 때만 실행.
+  # (PR 때는 테스트만 돌고 이미지는 안 올림)
+  build-and-push:
+    name: Build & push images
+    needs: backend-test
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      # GHCR 이미지 이름은 소문자만 허용. 소유자명(대문자 가능)을 소문자로 변환.
+      - name: Lowercase owner
+        id: owner
+        run: echo "value=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
+
+      # GHCR 로그인 — GitHub 이 자동으로 주는 토큰 사용(따로 비번 설정 불필요).
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # 백엔드 이미지: latest + 커밋 sha 두 태그로 올림.
+      - name: Build & push backend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            ghcr.io/${{ steps.owner.outputs.value }}/codexray-backend:latest
+            ghcr.io/${{ steps.owner.outputs.value }}/codexray-backend:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # 프론트 이미지: 빌드 시 환경변수 불필요(API 는 same-origin /api).
+      - name: Build & push frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          push: true
+          tags: |
+            ghcr.io/${{ steps.owner.outputs.value }}/codexray-frontend:latest
+            ghcr.io/${{ steps.owner.outputs.value }}/codexray-frontend:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
