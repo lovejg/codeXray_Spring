@@ -63,6 +63,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()  // 가입/로그인 등은 열어둠
                         .requestMatchers(HttpMethod.GET, "/api/problems/**").permitAll() // 문제 조회는 공개
+                        .requestMatchers(HttpMethod.GET, "/api/tags").permitAll() // 태그 목록 조회는 공개
                         // 커뮤니티 관리자 전용은 공개 GET 규칙보다 먼저 (순서 중요)
                         .requestMatchers("/api/community/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/community/posts/*/status").hasRole("ADMIN")

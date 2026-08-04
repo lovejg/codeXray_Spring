@@ -2,6 +2,7 @@ package com.codeXray.backend.rating.service;
 
 import com.codeXray.backend.common.exception.BusinessException;
 import com.codeXray.backend.common.exception.ErrorCode;
+import com.codeXray.backend.config.CacheConfig;
 import com.codeXray.backend.problem.entity.Problem;
 import com.codeXray.backend.problem.repository.ProblemRepository;
 import com.codeXray.backend.rating.dto.FeedbackResponse;
@@ -10,6 +11,8 @@ import com.codeXray.backend.rating.repository.LevelFeedbackRepository;
 import com.codeXray.backend.rating.util.RatingCalculator;
 import com.codeXray.backend.solution.repository.SolutionRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +30,13 @@ public class RatingService {
     private final SolutionRepository solutionRepository;
 
     // 피드백 제출(upsert) → 즉시 그 문제의 adjustedLevel/tier 재계산
+    // 이 문제의 adjustedLevel/tier가 바뀌므로 관련 캐시를 무효화:
+    //  - 상세: 해당 id만 정밀 evict
+    //  - 목록: 어떤 필터/페이지 키가 이 문제를 담고 있는지 특정 불가 → 전체 evict(allEntries)
+    @Caching(evict = {
+            @CacheEvict(cacheNames = CacheConfig.PROBLEM_DETAIL, key = "#problemId"),
+            @CacheEvict(cacheNames = CacheConfig.PROBLEM_LIST, allEntries = true)
+    })
     @Transactional
     public FeedbackResponse submitFeedback(Long userId, Long problemId, int level) {
         // 존재하지 않는 문제에 피드백 남기는 것 차단 (save 전에 걸러 깔끔한 404)
@@ -71,6 +81,11 @@ public class RatingService {
     }
 
     // 전체 재계산(배치용). 피드백을 문제별로 미리 그룹핑해 N+1 회피.
+    // 모든 문제의 tier가 바뀔 수 있으므로 문제 관련 캐시를 통째로 비운다.
+    @Caching(evict = {
+            @CacheEvict(cacheNames = CacheConfig.PROBLEM_DETAIL, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfig.PROBLEM_LIST, allEntries = true)
+    })
     @Transactional
     public int recomputeAll() {
         List<Problem> problems = problemRepository.findAll();

@@ -27,8 +27,12 @@ dependencies {
 	// DB driver (Postgres) — Node의 pg 대응
 	runtimeOnly 'org.postgresql:postgresql'
 
-	// Redis — refresh token 저장소
+	// Redis — refresh token 저장소 + 조회 캐시(@Cacheable) 백엔드
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+	// Spring Cache 추상화(@EnableCaching/@Cacheable) 오토컨픽
+	// Boot 4는 자동설정이 모듈로 쪼개져 있어 data-redis만으론 RedisCacheManager 자동설정이 안 붙음 → starter 필요
+	implementation 'org.springframework.boot:spring-boot-starter-cache'
 
 	// Kafka — AI 분석 비동기 처리(이벤트 발행/구독)
 	// Boot 4는 auto-config가 모듈로 분리됨 → 라이브러리(spring-kafka)만으론 자동설정 안 붙어

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { problemsApi, type ProblemQuery } from '../api/problems'
+import { tagsApi } from '../api/tags'
 import { SOURCE_LABEL, type ProblemSource } from '../types'
 import { TIER_ORDER, tierLabel } from '../lib/tier'
 import { useDebouncedValue } from '../lib/useDebouncedValue'
@@ -26,8 +27,16 @@ export default function ProblemsPage() {
   const [source, setSource] = useState<ProblemSource | ''>('')
   const [tierMin, setTierMin] = useState<number | ''>('')
   const [tierMax, setTierMax] = useState<number | ''>('')
+  const [tagId, setTagId] = useState<number | ''>('')
   const [sort, setSort] = useState('createdAt,desc')
   const [page, setPage] = useState(0)
+
+  // 태그 목록: 거의 안 바뀌는 참조 데이터(백엔드도 1h 캐시) → 오래 캐싱해 재요청 최소화
+  const { data: tags } = useQuery({
+    queryKey: ['tags'],
+    queryFn: tagsApi.list,
+    staleTime: 60 * 60 * 1000,
+  })
 
   // 타이핑이 멈추면 300ms 뒤 검색어가 반영됨(실시간 검색)
   const search = useDebouncedValue(keyword.trim(), 300)
@@ -57,6 +66,7 @@ export default function ProblemsPage() {
     source: source || undefined,
     tierMin: tierMin === '' ? undefined : tierMin,
     tierMax: tierMax === '' ? undefined : tierMax,
+    tagId: tagId === '' ? undefined : tagId,
     sort,
     page,
     size: PAGE_SIZE,
@@ -106,6 +116,11 @@ export default function ProblemsPage() {
         <select value={tierMax} onChange={(e) => { setTierMax(e.target.value === '' ? '' : Number(e.target.value)); setPage(0) }} className={selectCls}>
           <option value="">최대 티어</option>
           {TIER_ORDER.map((t, i) => <option key={t} value={i}>{tierLabel(t)}</option>)}
+        </select>
+
+        <select value={tagId} onChange={(e) => { setTagId(e.target.value === '' ? '' : Number(e.target.value)); setPage(0) }} className={selectCls}>
+          <option value="">전체 태그</option>
+          {tags?.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
         </select>
 
         <select value={sort} onChange={(e) => { setSort(e.target.value); setPage(0) }} className={`${selectCls} ml-auto`}>
