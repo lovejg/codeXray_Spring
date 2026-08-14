@@ -14,7 +14,7 @@
 **하지만 세 가지가 어긋난다.**
 1. **프로젝트 시작일** — 서류 `2026.05`, git 첫 커밋 **2026-06-19**. 고쳐야 한다.
 2. **k6 측정 스크립트가 저장소에 없다.** 결과 수치는 README에 표로 남아 있지만, 재현 가능한 스크립트와 raw 출력은 없다.
-3. **테스트 코드는 사실상 없다.** `contextLoads()` 1개뿐. 서류에서 "테스트" 를 강조하면 즉시 무너진다.
+3. **테스트 코드가 얇다.** 3개 클래스 / 12개 메서드뿐이고, **웹·시큐리티 계층을 지나는 테스트는 0개**다(MockMvc·`@WebMvcTest` 사용 0건). 서류에서 "테스트" 를 과하게 강조하면 범위를 되물었을 때 무너진다.
 
 그리고 **서류가 언급하지 않은 실제 결함이 몇 개 있다.** 가장 큰 것은 `@CacheEvict`가 트랜잭션 커밋 전에 실행돼 stale 캐시가 생길 수 있는 구조와, **`Solution` 목록 조회에 아직 살아 있는 N+1**이다. 5절에 정리했다.
 
@@ -68,8 +68,11 @@
 | **엔드포인트** | **60개** (GET 18 · POST 22 · PATCH 9 · DELETE 7 · PUT 4) |
 | **엔티티(@Entity)** | **15개** |
 | Flyway 마이그레이션 | **V1 ~ V10** (10개) |
-| **테스트 파일** | **1개** (`BackendApplicationTests.contextLoads`) |
-| curl 기반 수동 검증 스크립트 | **25개** (`backend/*test.sh`) — 커밋되어 있음 |
+| **테스트 파일** | **3개** / 테스트 메서드 **12개** (실측 — 5-b 참조) |
+| ├ `BackendApplicationTests` | `@SpringBootTest` — 컨텍스트 부팅 + Flyway V1~V10 적용 + Hibernate `validate` 검증 (메서드 1개) |
+| ├ `ProblemListQueryCountTest` | `@DataJpaTest` — 문제 목록 조회 select 쿼리 수를 상한 4로 고정하는 N+1 회귀 테스트 (메서드 1개) |
+| └ `RatingCalculatorTest` | 순수 JUnit(Spring 미기동) — 난이도 계산 로직 경계값 **10개** |
+| curl 기반 수동 검증 스크립트 | **25개** (`backend/*test.sh`) — 커밋되어 있음. **CI 미포함, 자동 assert 없음**(HTTP 코드 출력만) |
 
 엔티티 15개: `User`, `EmailVerificationToken`, `Problem`, `ProblemTag`, `AlgorithmTag`, `Solution`, `Memo`, `Note`, `LevelFeedback`, `CommunityPost`, `Comment`, `PostVote`, `PostReport`, `Notification`, `AiJob`
 
@@ -400,7 +403,7 @@ if (count == null || count > dailyLimit) throw new BusinessException(AI_RATE_LIM
 | `needs` 의존 | **[확인] 실재** — `.github/workflows/ci.yml` `build-and-push: needs: backend-test` |
 | push 전용 가드 | **[확인]** `if: github.event_name == 'push'` (PR에선 테스트만) |
 | **Testcontainers vs `services:`** | **[확인] GitHub Actions `services:` 블록이다.** Testcontainers 아님 |
-| 실제 부팅 통합 테스트 | **[확인] 맞지만 범위가 `contextLoads` 뿐** |
+| 실제 부팅 통합 테스트 | **[확인] 맞음.** 부팅 검증(`contextLoads`) + `@DataJpaTest` 쿼리 수 회귀 + 순수 단위 10개가 CI에서 함께 돈다. **단 API/시큐리티 계층은 미포함** |
 | GHCR 푸시 | **[확인]** backend/frontend 각각 `:latest` + `:${{ github.sha }}` 두 태그 |
 
 `services:` 블록은 `postgres:16` **하나뿐**이다. **Redis도 Kafka도 없다.** 그럼에도 `contextLoads`가 통과하는 이유는 Redis 커넥션이 지연 생성이고 `spring.kafka.listener.missing-topics-fatal: false` 이기 때문 — **[추론]**.
@@ -413,19 +416,25 @@ if (count == null || count > dailyLimit) throw new BusinessException(AI_RATE_LIM
 ```
 $ ./gradlew test --no-daemon
 > Task :test
-BUILD SUCCESSFUL in 12s
+BUILD SUCCESSFUL in 10s
 ```
 
 | 항목 | 값 |
 |---|---|
-| 테스트 클래스 | **1개** (`BackendApplicationTests`) |
-| 테스트 메서드 | **1개** (`contextLoads()`) |
-| **통과 / 실패** | **1 통과 / 0 실패** |
+| 테스트 클래스 | **3개** (`BackendApplicationTests`, `ProblemListQueryCountTest`, `RatingCalculatorTest`) |
+| 테스트 메서드 | **12개** (1 + 1 + 10) |
+| **통과 / 실패** | **12 통과 / 0 실패** |
 | 상태 | **실제로 실행되고 통과한다** ✅ |
+| **미커버 계층** | **웹 / 시큐리티** — `MockMvc`·`@WebMvcTest`·`@AutoConfigureMockMvc`·`TestRestTemplate` 사용 **0건**. 시큐리티 필터 체인을 지나는 테스트는 없다 |
 
-> 다른 프로젝트 두 개는 "테스트가 존재하지만 실행되지 않는 상태"였다고 했다. **이 프로젝트는 실행되고 통과한다.** 다만 **개수가 1개다.** "테스트가 돈다"와 "테스트 커버리지가 있다"는 다른 이야기다. 4절 매핑 표를 볼 것.
+> 계층별로 정확히 말하면 이렇다.
+> - `BackendApplicationTests` — `@SpringBootTest`. 전체 컨텍스트를 띄우지만 HTTP 요청을 보내지 않으므로 **필터 체인은 실행되지 않는다.**
+> - `ProblemListQueryCountTest` — `@DataJpaTest` + 실제 Postgres. JPA 슬라이스만. 웹·시큐리티 자동설정은 로드조차 되지 않는다.
+> - `RatingCalculatorTest` — Spring 컨텍스트 없이 static 메서드 직접 호출.
 >
-> 대신 **curl 기반 수동 검증 스크립트 25개**가 커밋되어 있다 (`backend/logintest.sh`, `rotationtest.sh`, `communitytest.sh`, `moderationtest.sh`, `ratingtest.sh`, `aitest.sh`, `smokeboot.sh` 등). **이건 "테스트 코드"가 아니라 "수동 E2E 검증 스크립트"다.** 그렇게 정확히 부르면 오히려 신뢰를 얻는다. `rotationtest.sh` 처럼 **토큰 회전을 검증하려고 따로 만든 스크립트**가 있다는 건 기능 검증을 진지하게 했다는 증거다.
+> 다른 프로젝트 두 개는 "테스트가 존재하지만 실행되지 않는 상태"였다고 했다. **이 프로젝트는 실행되고 통과한다.** 다만 **12개 중 10개가 `RatingCalculator` 한 클래스에 몰려 있고 컨트롤러·서비스 계층은 0개다.** "테스트가 돈다"와 "테스트 커버리지가 있다"는 다른 이야기다. 4절 매핑 표를 볼 것.
+>
+> 그 밖에 **curl 기반 수동 검증 스크립트 25개**가 커밋되어 있다 (`backend/logintest.sh`, `rotationtest.sh`, `communitytest.sh`, `moderationtest.sh`, `ratingtest.sh`, `aitest.sh`, `smokeboot.sh` 등). **이건 "테스트 코드"가 아니라 "수동 E2E 검증 스크립트"다.** 그렇게 정확히 부르면 오히려 신뢰를 얻는다. 실제 앱을 `bootRun`으로 띄우고 `localhost:8080`에 curl을 쏘므로 **필터 체인을 진짜로 통과하는 유일한 검증 수단**이지만, **CI에 포함되지 않고 응답을 자동 assert하지도 않는다** — 각 스크립트의 유일한 `exit 1`은 부팅 실패 가드이고, 응답은 `HTTP %{http_code}`를 출력해 사람이 눈으로 대조한다. `rotationtest.sh` 처럼 **토큰 회전을 검증하려고 따로 만든 스크립트**가 있다는 건 기능 검증을 진지하게 했다는 증거다.
 
 ### 6. 배포 아키텍처
 
@@ -521,7 +530,7 @@ adjustedLevel = (α·origLevel + β·arLevel + Σ feedbackLevels) / (α + β + n
 `levelToTier()` (`:53-58`): 0~5 구간을 5개 family(BRONZE→DIAMOND) × 3개 sub(III/II/I) = **15단계**로 매핑. `Math.min(4.9999, ...)` 로 상한 클램프.
 
 `RatingCalculator`는 **Spring/DB 의존이 전혀 없는 순수 static 유틸**이다 (`:7` 주석에도 *"DB, Spring 의존성 없음 → 단위 테스트하기 쉬움"*).
-→ ⚠️ **테스트하기 쉽다고 주석에 써 놓고 테스트가 없다.** 면접관이 이 주석을 보면 반드시 묻는다. **이 클래스에 단위 테스트 5~6개 추가하는 게 투자 대비 효과가 가장 큰 액션이다** (5절).
+→ ✅ **주석대로 단위 테스트가 붙어 있다.** `RatingCalculatorTest` **10개** — 사전값(ALPHA/BETA) 구성, shrinkage 감쇠 강도, 레벨→티어 경계(0/4.9999, 서브티어 3등분)를 Spring 없이 static 호출로 고정한다. 면접관이 이 주석을 지적해도 코드로 받아칠 수 있다.
 
 **갱신 시점 — [확인] 두 경로 모두 존재**:
 1. **피드백마다 즉시** — `RatingService.submitFeedback()` → `recomputeProblem(problemId)` (`:57`)
@@ -719,15 +728,15 @@ public static SolutionResponse from(Solution solution) {
 
 > **이건 오히려 기회다.** "N+1 다 잡으셨나요?"에 "문제 목록은 잡았고, 풀이 목록에 남아 있는 걸 압니다. 원인은 `@OneToOne mappedBy`의 프록시 불가입니다"라고 답하면 **`@BatchSize` 하나만 말하는 것보다 훨씬 깊이 있어 보인다.**
 
-### #3. 테스트 코드가 사실상 없다
+### #3. 테스트가 웹·시큐리티 계층을 덮지 않는다
 
-**위치**: `backend/src/test/java/.../BackendApplicationTests.java` — `contextLoads()` **1개**
+**위치**: `backend/src/test/java/` 전체 — 클래스 **3개** / 메서드 **12개** (`@SpringBootTest` 부팅 1 · `@DataJpaTest` 쿼리 수 회귀 1 · 순수 단위 10)
 
-공고 우대사항에 **"테스트 코드"** 가 명시돼 있다. 1개는 방어가 안 된다.
+공고 우대사항에 **"테스트 코드"** 가 명시돼 있다. 12개면 "있다"고 말할 수는 있으나, **컨트롤러·서비스·시큐리티 계층이 0개**라 커버리지로는 방어가 안 된다. `MockMvc`는 한 번도 쓰지 않았다(`spring-boot-starter-webmvc-test`·`security-test` 의존성은 `build.gradle:67,69`에 선언만 돼 있고 사용처가 없다).
 
-**답변**: "자동화 테스트는 컨텍스트 로딩 1개뿐입니다. 대신 도메인마다 curl 기반 E2E 검증 스크립트를 25개 만들어 수동으로 돌렸습니다(`rotationtest.sh`로 토큰 회전까지 검증). **자동화하지 못한 것이 이 프로젝트의 가장 큰 부채**라고 생각합니다."
+**답변**: "자동화 테스트는 12개입니다 — 컨텍스트 부팅 검증 1개, `@DataJpaTest`로 문제 목록 쿼리 수를 상한 4로 고정한 N+1 회귀 1개, `RatingCalculator` 경계값 단위 테스트 10개입니다. **다만 API 계층은 자동화하지 못했습니다.** MockMvc 테스트가 없어서 시큐리티 필터 체인을 지나는 검증은 curl 스크립트 25개로 수동으로만 돌렸습니다. **API 계층 자동화가 이 프로젝트의 가장 큰 부채**라고 생각합니다."
 
-> **면접 전 액션(가장 우선)**: `RatingCalculator`는 Spring/DB 의존이 0인 순수 함수다. **여기에 단위 테스트 6개만 추가해도 "테스트 코드 있음"의 성격이 달라진다.** 경계값(피드백 0개, 정답률 null, level 0/5, 티어 경계 0.999/1.0/4.9999)만 짜면 30분이면 된다. 그리고 `@DataJpaTest`로 `ProblemRepositoryCustomImpl.search()`의 EXISTS 필터 + 페이징 테스트 하나. **이 두 개면 4절 매핑 표가 "없음"에서 "있음"으로 바뀐다.**
+> **면접 전 액션(가장 우선)**: 남은 것은 **`@WebMvcTest` 또는 `@SpringBootTest` + `@AutoConfigureMockMvc` 기반 API 테스트**다. 의존성은 이미 들어와 있으니 `SolutionController` 하나만 잡아도 된다 — 인증 없이 401, 남의 자원 403, 삭제 204·재조회 404. 이건 이미 `solutiontest.sh:80-96`이 수동으로 하고 있는 시나리오라 **그대로 옮기면 된다.** 그러면 4절 매핑 표의 "웹 계층 0개"가 사라진다.
 
 ### #4. 난이도 재계산에 lost update (동시성)
 
@@ -937,7 +946,7 @@ DTO가 record + `@Valid`/`@NotBlank`/`@Size`/`@NotNull` 조합. AI 코드는 20,
 | **DB 관리 및 성능 최적화** | Flyway 10개 마이그레이션, `@BatchSize` N+1 제거, EXPLAIN 판단, Redis 캐시 | ✅ |
 | RESTful API | 60개 엔드포인트, `ErrorCode`+`BusinessException`+`@RestControllerAdvice` 통일 응답, 커서 페이징(알림) | ✅ |
 | 아키텍처 설계·구현 | 도메인별 패키지 분리, `RepositoryCustom` 3곳, `SecurityConfig` | ✅ |
-| **테스트** | `contextLoads` 1개 + curl 스크립트 25개 | ❌ **가장 약함** |
+| **테스트** | JUnit 3클래스 / 12메서드(`@SpringBootTest` 1 · `@DataJpaTest` 1 · 순수 단위 10) + 수동 curl 스크립트 25개 | 🟡 **여전히 약함** — 웹·시큐리티 계층 0개 |
 | **문서화** | `README.md` 242줄 (아키텍처/성능/의사결정), 코드 주석 밀도 높음. **API 문서 없음** (springdoc/Swagger 미도입 — grep 확인) | 🟡 **부분** |
 | 서버 안정성과 API 속도 향상 | 성능 3단계 측정, Watchtower 무중단(?), `restart: unless-stopped` | 🟡 |
 | AI를 활용한 개발 | Anthropic SDK 통합, Kafka 비동기, 쿼터 제한 | ✅ |
@@ -949,7 +958,7 @@ DTO가 record + `@Valid`/`@NotBlank`/`@Size`/`@NotNull` 조합. AI 코드는 20,
 | **실행계획 기반 인덱스/쿼리 튜닝** | 아래 별도 항목 | 🟡 **부분** |
 | **로그 기반 상태 분석과 성능 개선** | 아래 별도 항목 | 🟡 **부분** |
 | Sentry·Datadog 등 오류 분석 | **없음** (grep: sentry/datadog/actuator/micrometer 전부 0건) | ❌ **없음** |
-| **테스트 코드** | `contextLoads` 1개 | ❌ **없음에 가까움** |
+| **테스트 코드** | 3클래스 / 12메서드 (단위 10 + JPA 슬라이스 1 + 컨텍스트 부팅 1) | 🟡 **부분** — 비즈니스 로직 단위 테스트는 있으나 API 계층 없음 |
 | 모니터링 | **없음** — actuator도 없다 | ❌ **없음** |
 | 24/365 무중단 | `restart: unless-stopped`, Watchtower 자동 교체. **하지만 헬스체크·롤링 배포·인스턴스 이중화 없음** → Watchtower 교체 중 **다운타임 발생** | ❌ **주장 불가** |
 
@@ -1018,11 +1027,11 @@ DTO가 record + `@Valid`/`@NotBlank`/`@Size`/`@NotNull` 조합. AI 코드는 20,
 
 **답변**: "SQL 로그를 근거로 N+1의 정확한 위치를 특정한 경험은 있고, 커밋 이력으로도 남아 있습니다. 다만 **운영 관점의 로깅 인프라는 없습니다** — 구조적 로깅도, 전역 예외 로깅도 없어서 배포 후 500이 나면 원인 추적이 안 됩니다. 이건 명확한 부채입니다."
 
-### ⑥ 테스트 코드 — **❌ 실제 실행 결과 기준: `contextLoads` 1개 통과**
+### ⑥ 테스트 코드 — **🟡 실제 실행 결과 기준: 3클래스 / 12메서드 전부 통과**
 
-(1-D 5-b 참조) — 실행됨, 통과함, **개수 1개**.
+(1-D 5-b 참조) — 실행됨, 통과함, **12개**. 단 10개가 `RatingCalculator` 한 클래스에 몰려 있다.
 
-**한 가지는 방어할 수 있다**: 이 1개가 **Flyway V1~V10 전체 적용 + 엔티티 15개 스키마 `validate` 통과**를 매 CI마다 검증한다. **"마이그레이션과 엔티티가 어긋나면 CI가 막습니다"** 는 사실이고 가치가 있다. 하지만 **비즈니스 로직 테스트는 0개**다.
+**두 가지는 방어할 수 있다**: (1) `contextLoads`가 **Flyway V1~V10 전체 적용 + 엔티티 15개 스키마 `validate` 통과**를 매 CI마다 검증한다 — **"마이그레이션과 엔티티가 어긋나면 CI가 막습니다"** 는 사실이고 가치가 있다. (2) `ProblemListQueryCountTest`가 **`@BatchSize`가 빠지면 즉시 빨간불이 되도록 select 쿼리 수를 상한 4로 고정**한다 — 성능 주장을 테스트로 지키고 있다는 뜻이다. 하지만 **컨트롤러·서비스 계층 테스트는 0개**이고, **시큐리티 필터 체인을 지나는 테스트도 0개**다.
 
 ### ⑦ 문서화 — **🟡 부분. README는 훌륭, API 문서는 없음.**
 
@@ -1057,7 +1066,7 @@ DTO가 record + `@Valid`/`@NotBlank`/`@Size`/`@NotNull` 조합. AI 코드는 20,
 | **2** | **성능 수치 3단계의 측정 방법** | 수치를 서류에 박았는데 **k6 스크립트가 저장소에 없다.** "어떻게 측정했나요"에 시나리오(목록/상세 비율), VU, 워밍업 여부, 캐시 상태 초기화 방법을 즉답 못 하면 수치 전체의 신뢰가 무너진다. **70/30 비율은 저장소에 근거가 없다.** |
 | **3** | **캐시 무효화 3종을 왜 다르게 했나 + 스탬피드** | 캐시가 이 프로젝트의 최강 카드인데, 무효화 설계가 핵심이다. "목록은 왜 `allEntries`인가"(=영향받는 키를 특정 불가), "그럼 evict 직후 폭주는?"(=스탬피드 방어 없음, `@BatchSize`가 바닥을 받침) 을 세트로 준비해야 한다. **추가로 evict가 커밋 전에 실행될 수 있다는 것(3절 #1)도 알아둘 것.** |
 | **4** | **남아 있는 N+1 (`Solution` 목록의 `@OneToOne mappedBy` + `Problem`)** | "N+1 다 잡으셨나요?"에 "네"라고 답했다가 면접관이 `SolutionResponse.from()`을 열면 끝이다. **먼저 말하면 오히려 깊이의 증거가 된다.** `mappedBy` 쪽 `@OneToOne`이 왜 프록시가 안 되는지가 핵심. |
-| **5** | **테스트가 1개라는 사실** | 공고 우대사항이다. "테스트 있습니다"라고 했다가 `contextLoads` 하나면 신뢰가 통째로 무너진다. **먼저 정직하게 말하고, 그 1개가 Flyway 10개 + 엔티티 15개 검증을 한다는 가치를 설명하라.** |
+| **5** | **테스트 범위 (12개, 전부 비-웹 계층)** | 공고 우대사항이다. "테스트 있습니다"로 끝냈다가 "어느 계층까지요?"에 막히면 신뢰가 무너진다. **3클래스 12개이고 MockMvc가 없어 API·시큐리티 계층은 안 덮는다고 먼저 밝힌 뒤**, `contextLoads`가 Flyway 10개 + 엔티티 15개를 검증하고 `ProblemListQueryCountTest`가 N+1 회귀를 상한 4로 막는다는 가치를 설명하라. |
 | **6** | **Kafka를 왜 썼나 (과잉설계 방어)** | "하루 2회 제한에 단일 인스턴스인데 Kafka가 필요했나요"는 반드시 나온다. **`@Async`가 이미 프로젝트에 있다는 사실**(메일 발송)이 최고의 답변 재료다 — 용도를 나눈 것이지 모른 게 아니다. 그리고 **파티션 1개라 지금은 병렬성이 없다는 것도 먼저 말하라.** |
 | **7** | **10만 건이면 어떤 인덱스가 필요한가** | 공고에 "RDBMS 구조 설계와 확장성"과 "실행계획 기반 튜닝"이 둘 다 있다. "689행이라 인덱스가 무의미했다"에서 멈추면 **"규모를 안 겪어봤다"로 읽힌다.** `problem_tags(tag_id, problem_id)`가 왜 1순위인지(=현재 유니크가 `(problem_id, tag_id)` 순서라 tag_id 단독에 못 씀)를 말할 수 있으면 **판이 뒤집힌다.** |
 
@@ -1092,7 +1101,7 @@ DTO가 record + `@Valid`/`@NotBlank`/`@Size`/`@NotNull` 조합. AI 코드는 20,
 | **2** | k6로 측정 (VU/duration/시나리오 명시) | **스크립트가 저장소에 없음.** 결과 표만 README에 존재 | 🔴 **높음** — "재현해 보여주세요"에 무너짐 | 스크립트 복원 후 `perf/` 에 커밋. 불가하면 "측정 스크립트는 보존하지 못했다"고 먼저 말할 것 |
 | **3** | 목록 **70%** + 상세 **30%** 혼합 | **저장소 어디에도 근거 없음** (README에도 비율 언급 없음) | 🔴 **높음** — 기억에만 있는 수치 | 스크립트를 복원해 확정하거나 **서류에서 비율을 삭제** |
 | **4** | "`EXPLAIN ANALYZE`로 확인" | **raw 출력 미보존.** README에 결론 문장만 | 🟠 중간 | `docs/EXPLAIN.md`에 실제 출력 붙여 커밋 (20분) |
-| **5** | "**테스트**·문서화" (주요 업무 대응) | **테스트 1개**(`contextLoads`), **API 문서 없음** | 🔴 **높음** | 서류에서 "테스트"를 강조하지 말 것. `RatingCalculator` 단위 테스트 + springdoc 추가로 완화 |
+| **5** | "**테스트**·문서화" (주요 업무 대응) | **테스트 3클래스 / 12메서드**(웹·시큐리티 계층 0개), **API 문서 없음** | 🟠 중간 | "테스트 코드 작성"은 말할 수 있으나 **범위(API 계층 미커버)를 먼저 밝힐 것.** MockMvc 테스트 + springdoc 추가로 완화 |
 | **6** | "count 쿼리를 별도 최적화" *(서류에 이 표현을 썼다면)* | `PageableExecutionUtils` **미사용**, `PageImpl` 직접 생성 → count 항상 실행 | 🟠 중간 | **"별도 쿼리로 분리"** 로 표현 수정 |
 | **7** | "24/365 무중단" (공고 우대사항 대응) | 롤링 배포·헬스체크·이중화 **전부 없음.** Watchtower는 컨테이너 정지 후 재생성 = 다운타임 발생 | 🔴 **높음** | **"무중단" 단어 삭제.** "pull 기반 자동 배포"로 대체 |
 | **8** | "모니터링" / "오류 분석" | actuator·Micrometer·Sentry **전부 없음** | 🟠 중간 | 해당 항목은 **"없음"으로 정직하게** |
@@ -1111,7 +1120,7 @@ DTO가 record + `@Valid`/`@NotBlank`/`@Size`/`@NotNull` 조합. AI 코드는 20,
 | **5분** | 서류의 기간을 **2026.06 ~ 2026.08**로 수정 | 목록 B #1 제거 — 가장 쉽고 가장 위험한 항목 |
 | **5분** | 서류에서 **"무중단"** 삭제, "테스트" 강조 완화, "count 최적화" → "count 분리" | 목록 B #5, #6, #7 제거 |
 | **20분** | `docker exec codexray-db psql -c "EXPLAIN ANALYZE ..."` 결과를 `docs/EXPLAIN.md`에 커밋 | 4절 ④가 🟡 → ✅. **우대사항 직접 대응** |
-| **30분** | `RatingCalculator` 단위 테스트 6개 (경계값) + `@DataJpaTest`로 EXISTS 필터 테스트 1개 | 4절 ⑥이 ❌ → 🟡. **"테스트하기 쉽다"는 주석의 값을 회수** |
+| ~~30분~~ **완료** | ~~`RatingCalculator` 단위 테스트 6개 + `@DataJpaTest` 1개~~ → **작성 완료**: `RatingCalculatorTest` **10개**, `@DataJpaTest`는 EXISTS 필터 대신 **목록 쿼리 수 회귀**(`ProblemListQueryCountTest`)로 작성 | 4절 ⑥ ❌ → 🟡 **달성.** 남은 것은 **MockMvc 기반 API 테스트**(3절 #3) |
 | **15분** | `springdoc-openapi-starter-webmvc-ui` 의존성 추가 | 4절 ⑦이 🟡 → ✅. 60개 엔드포인트 자동 문서화 |
 | **10분** | `AuthController.logout()`이 `X-Refresh-Token` 헤더도 받도록 수정 | 목록 B #13, 3절 #6 제거 |
 | **10분** | `GlobalExceptionHandler`에 `log.error(...)` 추가 (TODO 해소) | 3절 #7 완화, "로그 기반 분석" 서사 보강 |
