@@ -26,3 +26,6 @@ dist/
 build/
 .gradle/
 *.log
+
+# AI Code Editors / Assistants
+.claude/
