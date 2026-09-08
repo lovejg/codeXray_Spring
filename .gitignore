@@ -1,3 +1,27 @@
 # 이력서/포트폴리오 생성·면접 대비용 개인 문서 (공개 레포에 넣지 않음)
 PORTFOLIO.md
 PROJECT_GUIDE.md
+FINDINGS_CodeXray.md
+
+### IDE ###
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+
+### OS ###
+.DS_Store
+Thumbs.db
+
+### Env (예시 파일만 커밋) ###
+.env
+.env.*
+!.env.example
+
+### 빌드 산출물 ###
+node_modules/
+dist/
+build/
+.gradle/
+*.log
