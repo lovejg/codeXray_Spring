@@ -29,6 +29,18 @@ body {
     color: inherit;
     text-decoration: none;
   }
+  /* Tailwind 4 기본 스타일은 버튼 커서를 화살표(default)로 둔다. 누를 수 있는 것은 손가락 모양으로 */
+  button:not(:disabled),
+  [role='button'],
+  select,
+  summary,
+  input[type='checkbox'],
+  input[type='radio'] {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
   /* JetBrains Mono 는 <=, != 같은 기호를 한 글자(≤, ≠)로 합쳐 그린다. 코드에서는 실제로 친 글자가 보여야 해서 끈다 */
   .font-mono,
   code,

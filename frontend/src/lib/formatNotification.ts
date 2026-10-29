@@ -1,4 +1,4 @@
-import type { AppNotification } from '../types'
+import { postPath, type AppNotification } from '../types'
 
 export interface FormattedNotification {
   text: string
@@ -8,7 +8,8 @@ export interface FormattedNotification {
 // 알림 타입별 사용자용 문구 + 이동 링크.
 export function formatNotification(n: AppNotification): FormattedNotification {
   const p = n.payload
-  const postLink = p.postId ? `/community/${p.postId}` : null
+  // 건의사항 글에 달린 댓글·숨김 알림은 건의사항 화면으로(postType 이 없는 예전 알림은 커뮤니티로)
+  const postLink = p.postId ? postPath(p.postType as string | undefined, p.postId as number) : null
 
   switch (n.type) {
     case 'COMMENT':

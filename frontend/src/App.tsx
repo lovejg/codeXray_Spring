@@ -26,6 +26,7 @@ import SuggestionPostPage from './pages/SuggestionPostPage'
 import ProfilePage from './pages/ProfilePage'
 import NotificationsPage from './pages/NotificationsPage'
 import AdminReportsPage from './pages/AdminReportsPage'
+import PrivacyPage from './pages/PrivacyPage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -59,6 +60,7 @@ function AppRoutes() {
         <Route path="/suggestions" element={<SuggestionsPage />} />
         <Route path="/suggestions/new" element={<ProtectedRoute><SuggestionFormPage /></ProtectedRoute>} />
         <Route path="/suggestions/:id" element={<SuggestionPostPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
 
         <Route path="/solutions" element={<ProtectedRoute><SolutionsPage /></ProtectedRoute>} />
         <Route path="/solutions/new" element={<ProtectedRoute><SolutionFormPage /></ProtectedRoute>} />

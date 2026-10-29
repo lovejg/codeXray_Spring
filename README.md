@@ -27,6 +27,7 @@ codeXray는 알고리즘 문제를 풀고, 풀이·메모·노트를 남기고, 
 | 도메인 | 내용 |
 |---|---|
 | **인증** | 이메일 회원가입·인증메일, 로그인/로그아웃, JWT(access) + refresh 토큰 **회전(rotation)**, 소셜 로그인(Google/Naver) |
+| **계정** | 닉네임·비밀번호 변경(소셜 계정은 비밀번호 없음), 탈퇴 — 개인 데이터는 DB `ON DELETE CASCADE`로 즉시 삭제, 글·댓글은 작성자만 비움. [개인정보처리방침](https://codexray.org/privacy) |
 | **문제** | 문제 목록(태그·난이도·출처 필터, 페이징), 상세 조회 — QueryDSL 동적 쿼리 |
 | **풀이/기록** | 풀이 제출·조회, 풀이별 메모, 개인 노트 |
 | **AI 분석** | 풀이 코드 분석 & 문제 힌트를 **Claude로 생성** — Kafka 비동기 처리 + 잡 폴링, 사용자별 일일 사용량 제한 |
@@ -114,12 +115,16 @@ flowchart LR
 ```
 
 **① CI — 빌드 & 테스트** (`.github/workflows/ci.yml`)
-- push/PR마다 `./gradlew test` 실행. 테스트 12개 중 2개(전체 컨텍스트 부팅 1 · JPA 슬라이스 1)가 실제 Postgres를 요구하므로 **Postgres 16 서비스 컨테이너**를 띄우고 `DB_URL` 등 필요한 환경변수를 주입합니다. 여러 계층을 관통하는 시나리오 테스트(`@WebMvcTest` · MockMvc · `RANDOM_PORT`)는 없습니다.
+- push/PR마다 `./gradlew test` 실행. 테스트 24개 중 3개(전체 컨텍스트 부팅 1 · JPA 슬라이스 2 — 목록 쿼리 수, 탈퇴 시 AI 기록 삭제)가 실제 Postgres를 요구하므로 **Postgres 16 서비스 컨테이너**를 띄우고 `DB_URL` 등 필요한 환경변수를 주입합니다. MockMvc는 컨트롤러 하나를 따로 띄워 오류 응답 코드(400/404/500)를 확인하는 데만 쓰고, 여러 계층을 관통하는 시나리오 테스트(`@WebMvcTest` · `RANDOM_PORT`)는 없습니다.
 
 **② 이미지 빌드 & 푸시**
 - 테스트 통과 시에만(`needs`) backend·frontend 이미지를 **멀티 스테이지**로 빌드해 GHCR에 **커밋 SHA 태그**로 푸시합니다.
 - 서버가 Arm이라 `linux/arm64` 이미지를 만듭니다. Gradle·npm 빌드 단계는 `--platform=$BUILDPLATFORM`으로 **러너의 x86 CPU에서** 돌리고(결과물 jar·정적파일은 CPU와 무관), Arm 흉내(QEMU)는 마지막 실행 단계만 탑니다. 흉내 속에서 Gradle을 돌리면 몇 배 느려집니다.
 - 소셜 로그인 Client ID(공개값)는 Vite가 번들에 넣는 값이라 이미지 빌드 때 `build-args`로 주입합니다. secret은 백엔드에만 있습니다.
+  - 값을 두는 곳: Client ID는 저장소 **Variables**(`GOOGLE_CLIENT_ID`, `NAVER_CLIENT_ID`. 빌드 job이 환경 밖에서 읽음), secret은 `production` 환경 **Secrets**(`GOOGLE_CLIENT_SECRET`, `NAVER_CLIENT_SECRET`).
+  - 콘솔에 등록하는 콜백 주소: `https://codexray.org/oauth/callback/google`, `https://codexray.org/oauth/callback/naver` (로컬 개발용 `http://localhost:5173/...`도 같은 앱에 함께 등록).
+  - Google 앱을 외부 공개(프로덕션)로 게시하려면 홈페이지와 개인정보처리방침 주소가 필요해 `/privacy` 화면을 둡니다. 네이버는 검수 전 "개발 중" 상태에서 앱 관리자와 멤버로 등록한 아이디만 로그인됩니다.
+  - 값을 바꾼 뒤에는 코드 변경이 없어도 워크플로를 다시 돌려야(Re-run) 화면 이미지와 서버 `.env`에 반영됩니다.
 
 **③ 배포 — SSH + 자동 되돌리기** (`deploy/deploy.sh`)
 - GitHub Actions가 SSH로 서버에 들어가 compose 파일·스크립트·`.env`(GitHub Secrets에서 만들어 600 권한으로)를 올리고 `deploy.sh <커밋SHA>`를 실행합니다.
@@ -275,10 +280,13 @@ flowchart LR
   LLM 응답은 수 초~수십 초가 걸릴 수 있어, 동기 처리 시 요청 스레드를 오래 점유합니다. 분석/힌트 요청을 이벤트로 발행하고 컨슈머가 처리하도록 하여 API는 즉시 응답하고 클라이언트는 잡 상태를 폴링합니다.
 
 - **Flyway가 스키마를 소유, Hibernate는 검증만(`ddl-auto: validate`)**
-  마이그레이션(V1~V10)으로 스키마 변경 이력을 명시적으로 관리하고, 엔티티-스키마 불일치는 부팅 시점에 잡습니다.
+  마이그레이션(V1~V11)으로 스키마 변경 이력을 명시적으로 관리하고, 엔티티-스키마 불일치는 부팅 시점에 잡습니다.
+
+- **탈퇴 정리는 DB 외래키가 맡는다**
+  유저 소유 테이블은 `ON DELETE CASCADE`, 다른 사람과 얽힌 글·댓글은 `ON DELETE SET NULL`로 두어 서비스 코드가 테이블을 하나하나 지우지 않습니다. 붙여넣은 코드가 담기는 `ai_jobs`에만 외래키가 빠져 탈퇴해도 남던 것을 V11에서 바로잡았습니다(`AiJobUserCascadeTest`).
 
 - **전역 예외 처리 일원화**
-  `ErrorCode` enum + `BusinessException` + `@RestControllerAdvice`로 에러 응답 형식을 통일했습니다.
+  `ErrorCode` enum + `BusinessException` + `@RestControllerAdvice`로 에러 응답 형식을 통일했습니다. 숫자 자리에 글자·필수 파라미터 누락·깨진 JSON은 400, 없는 주소는 404로 돌려주고, 그 밖의 예상 못 한 예외만 500 + 서버 로그로 남깁니다(처음에는 이런 요청이 전부 로그 없는 500이었습니다).
 
 - **성능은 캐시부터가 아니라 쿼리부터**
   캐시로 덮기 전에 N+1을 `@BatchSize`로 근본 해결하고(캐시 미스에도 유효), 그 위에 캐싱을 얹었습니다. 각 단계를 부하 테스트로 분리 측정([성능 최적화](#-성능-최적화) 참고). 읽기 캐시는 "빠르게"보다 **"정확하게 오래되지 않게"** 를 먼저 보고, 데이터가 바뀌는 지점(피드백→tier 재계산)을 찾아 캐시별 무효화 방식을 나눴습니다. 이미 refresh 토큰용으로 쓰던 Redis를 재사용해 인프라 추가는 없었습니다.
@@ -326,7 +334,7 @@ codeXray/
 │   │                         #   recommend, ai, scheduler, common, config
 │   ├── src/main/resources/
 │   │   ├── application.yml
-│   │   └── db/migration/     # Flyway V1~V10 (스키마 + 시드)
+│   │   └── db/migration/     # Flyway V1~V11 (스키마 + 시드)
 │   └── Dockerfile
 ├── frontend/                # React 19 + Vite + TS
 │   ├── src/

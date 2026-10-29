@@ -16,14 +16,22 @@ export default function NotificationsPage() {
   const [cursor, setCursor] = useState<number | null>(null)
   const [hasMore, setHasMore] = useState(true)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
 
+  // 실패해도 loading 을 끈다. 안 끄면 첫 화면이 "불러오는 중"에서 멈춘다
   async function load(next: number | null) {
     setLoading(true)
-    const res = await notificationsApi.list({ cursor: next ?? undefined, limit: 20 })
-    setItems((prev) => (next == null ? res.items : [...prev, ...res.items]))
-    setCursor(res.nextCursor)
-    setHasMore(res.nextCursor != null)
-    setLoading(false)
+    setError(false)
+    try {
+      const res = await notificationsApi.list({ cursor: next ?? undefined, limit: 20 })
+      setItems((prev) => (next == null ? res.items : [...prev, ...res.items]))
+      setCursor(res.nextCursor)
+      setHasMore(res.nextCursor != null)
+    } catch {
+      setError(true)
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => {
@@ -67,7 +75,8 @@ export default function NotificationsPage() {
       </div>
 
       {loading && items.length === 0 && <Spinner label="불러오는 중…" />}
-      {!loading && items.length === 0 && <EmptyState message="알림이 없습니다" />}
+      {error && <EmptyState tone="error" message="알림을 불러오지 못했습니다." />}
+      {!loading && !error && items.length === 0 && <EmptyState message="알림이 없습니다" />}
 
       <div className="space-y-2">
         {items.map((n) => {

@@ -21,6 +21,7 @@ export default function VerifyEmailPage() {
   const [message, setMessage] = useState('')
   const [email, setEmail] = useState(emailFromState)
   const [resent, setResent] = useState(false)
+  const [resendError, setResendError] = useState('')
   // 다른 탭에서의 인증 완료로 성공 처리된 경우 → 로그인으로 자동 이동시킴
   const [autoRedirect, setAutoRedirect] = useState(false)
 
@@ -73,11 +74,13 @@ export default function VerifyEmailPage() {
   async function resend() {
     if (!email) return
     setResent(false)
+    setResendError('')
     try {
       await authApi.resendVerification(email)
       setResent(true)
     } catch (err) {
-      setMessage(apiErrorMessage(err, '재발송에 실패했습니다.'))
+      // message 는 인증 실패(status=error) 때만 보이는 자리라, 재발송 실패는 따로 보여 준다
+      setResendError(apiErrorMessage(err, '재발송에 실패했습니다.'))
     }
   }
 
@@ -136,6 +139,7 @@ export default function VerifyEmailPage() {
           인증 메일 재발송
         </button>
         {resent && <p className="text-sm text-emerald-400">재발송했습니다. 메일함을 확인해 주세요.</p>}
+        {resendError && <p className="text-sm text-rose-400">{resendError}</p>}
       </div>
 
       <p className="mt-6 text-center text-sm text-slate-400">

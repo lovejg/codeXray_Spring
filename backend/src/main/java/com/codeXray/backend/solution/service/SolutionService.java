@@ -95,7 +95,6 @@ public class SolutionService {
     // 별 표시 토글
     @Transactional
     public SolutionResponse toggleStar(Long id, Long userId) {
-        // TODO 5: getOwnedSolution → solution.toggleStar() → from
         Solution solution = getOwnedSolution(id, userId);
         solution.toggleStar();
         return SolutionResponse.from(solution);
@@ -111,17 +110,13 @@ public class SolutionService {
                     existing.update(wrongReason, logic, keyFunctions, freeNote);
                     return existing;
                 })
-                .orElseGet(() -> {
-                    return memoRepository.save(
-                            Memo.builder()
-                                    .solution(solution)
-                                    .wrongReason(wrongReason)
-                                    .logic(logic)
-                                    .keyFunctions(keyFunctions)
-                                    .freeNote(freeNote)
-                                    .build()
-                    );
-                });
+                .orElseGet(() -> memoRepository.save(Memo.builder()
+                        .solution(solution)
+                        .wrongReason(wrongReason)
+                        .logic(logic)
+                        .keyFunctions(keyFunctions)
+                        .freeNote(freeNote)
+                        .build()));
         return MemoResponse.from(memo);
     }
 

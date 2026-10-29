@@ -49,7 +49,7 @@ public class ProblemService {
     @Cacheable(cacheNames = CacheConfig.PROBLEM_DETAIL, key = "#id")
     @Transactional(readOnly = true)
     public ProblemResponse getById(Long id) {
-        Problem problem = problemRepository.findById(id).orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND));
+        Problem problem = problemRepository.findById(id).orElseThrow(() -> new BusinessException(ErrorCode.PROBLEM_NOT_FOUND));
         return ProblemResponse.from(problem);
     }
 

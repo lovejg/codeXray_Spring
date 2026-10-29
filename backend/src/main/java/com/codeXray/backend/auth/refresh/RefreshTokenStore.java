@@ -10,8 +10,8 @@ import java.util.UUID;
 
 /*
  * Refresh Token을 Redis에 저장/조회/삭제하는 저장소.
- * <p>저장 형태: key = "refresh:{토큰값}", value = "{userId}".
- * 토큰값으로 바로 조회해 userId를 알 수 있고, TTL로 14일 뒤 자동 삭제된다.
+ * 저장 형태: key = "refresh:{토큰값}", value = "{userId}".
+ * 토큰값으로 바로 조회해 userId를 알 수 있고, TTL(app.jwt.refresh-expiration-days, 운영 14일)이 지나면 자동 삭제된다.
  */
 @Component
 public class RefreshTokenStore {
@@ -21,7 +21,6 @@ public class RefreshTokenStore {
     private final StringRedisTemplate redisTemplate;
     private final long expirationDays;
 
-    // @Value로 만료일도 같이 주입
     public RefreshTokenStore(
             StringRedisTemplate redisTemplate,
             @Value("${app.jwt.refresh-expiration-days}") long expirationDays

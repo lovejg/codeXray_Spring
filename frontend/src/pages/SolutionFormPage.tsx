@@ -103,9 +103,9 @@ export default function SolutionFormPage() {
         ? await solutionsApi.update(editId!, code, language)
         : await solutionsApi.create(problem.id, code, language)
 
-      // 메모에 내용이 있으면 함께 저장
+      // 메모에 내용이 있거나, 원래 있던 메모를 비운 경우 저장(비운 경우를 빼면 지운 메모가 그대로 남는다)
       const hasMemo = memo.wrongReason || memo.logic || memo.keyFunctions || memo.freeNote
-      if (hasMemo) {
+      if (hasMemo || editing?.memo) {
         await solutionsApi.upsertMemo(saved.id, memo)
       }
       // 목록/상세 캐시를 무효화 → 이동한 화면에서 새로고침 없이 최신 반영

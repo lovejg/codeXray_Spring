@@ -22,10 +22,10 @@ import java.util.List;
 
 // 동적 쿼리를 위한 QueryDSL
 // 필터(검색어, 출처, 티어, 알고리즘)를 조건에 맞게 골라 붙여서, 문제 목록 조회
-// 그냥 쿼리에서 where을 and나 or로 쭉쭉 이어붙이는거라고 보면 됨
+// 헬퍼가 null 을 돌려주면 where 에서 그 조건은 빠진다. 값이 있는 조건만 and 로 이어진다
 public class ProblemRepositoryCustomImpl implements ProblemRepositoryCustom {
 
-    // SELECT * FROM이랑 queryFactory.selectFrom이랑 같음
+    // 쿼리를 만드는 시작점. selectFrom(problem) 은 SQL 의 select ... from problems 에 해당
     private final JPAQueryFactory queryFactory;
 
     // Q타입: 쿼리에서 problem.title처럼 필드를 타입 안전하게 참조하는 진입점(테이블 컬럼을 자바 객체로 참조)
@@ -78,11 +78,13 @@ public class ProblemRepositoryCustomImpl implements ProblemRepositoryCustom {
                 : problem.title.containsIgnoreCase(keyword);
     }
 
-    // 티어 범위(ordinal 구간)
+    // 티어 범위(ordinal 구간). 범위 밖 숫자는 양 끝으로 맞추고, 최소가 최대보다 크면 결과 없음
     private BooleanExpression tierBetween(Integer tierMin, Integer tierMax) {
         if (tierMin == null && tierMax == null) return null;
-        int from = (tierMin != null) ? tierMin : 0;
-        int to   = (tierMax != null) ? tierMax : Tier.values().length - 1;
+        int last = Tier.values().length - 1;
+        int from = (tierMin != null) ? Math.clamp(tierMin, 0, last) : 0;
+        int to   = (tierMax != null) ? Math.clamp(tierMax, 0, last) : last;
+        if (from > to) return problem.id.isNull(); // 항상 거짓인 조건
         List<Tier> range = Arrays.asList(Tier.values()).subList(from, to + 1);
         return problem.tier.in(range);
     }

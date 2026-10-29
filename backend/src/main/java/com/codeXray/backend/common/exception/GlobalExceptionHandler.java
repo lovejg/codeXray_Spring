@@ -1,10 +1,16 @@
 package com.codeXray.backend.common.exception;
 
 import com.codeXray.backend.common.dto.ErrorResponse;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.List;
 
@@ -12,6 +18,7 @@ import java.util.List;
  * 모든 컨트롤러에서 발생한 예외를 한 곳에서 가로채 통일된 JSON으로 변환.
  * (NestJS의 Exception Filter 대응)
  */
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -43,16 +50,31 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(body);
     }
 
+    /** 요청 모양이 잘못됨(숫자 자리에 글자, 필수 파라미터 없음, 깨진 JSON) → 400. 클라이언트 잘못이라 500 으로 두지 않는다 */
+    @ExceptionHandler({
+            MethodArgumentTypeMismatchException.class,
+            MissingServletRequestParameterException.class,
+            HttpMessageNotReadableException.class
+    })
+    public ResponseEntity<ErrorResponse> handleBadRequest(Exception e) {
+        return simple(HttpStatus.BAD_REQUEST, ErrorCode.INVALID_INPUT);
+    }
+
     /** 예상 못한 나머지 모든 예외 → 500 (민감 정보 노출 방지: 상세는 로그로만) */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUnexpected(Exception e) {
-        // TODO(Stage 14): 여기에 로깅 추가 (e.getMessage(), stacktrace)
-        ErrorResponse body = new ErrorResponse(
-                500,
-                ErrorCode.INTERNAL_ERROR.name(),
-                ErrorCode.INTERNAL_ERROR.getMessage(),
-                null
-        );
-        return ResponseEntity.internalServerError().body(body);
+        // 없는 주소(404), 안 받는 메서드(405) 같은 스프링 MVC 예외는 자기 상태 코드를 들고 있다. 그대로 돌려준다
+        if (e instanceof org.springframework.web.ErrorResponse mvc) {
+            HttpStatusCode status = mvc.getStatusCode();
+            ErrorCode code = status.value() == 404 ? ErrorCode.NOT_FOUND : ErrorCode.INVALID_INPUT;
+            return simple(status, code);
+        }
+        log.error("처리하지 못한 예외: {}", e.getMessage(), e);
+        return simple(HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
+    }
+
+    private ResponseEntity<ErrorResponse> simple(HttpStatusCode status, ErrorCode code) {
+        ErrorResponse body = new ErrorResponse(status.value(), code.name(), code.getMessage(), null);
+        return ResponseEntity.status(status).body(body);
     }
 }

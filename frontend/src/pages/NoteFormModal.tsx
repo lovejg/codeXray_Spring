@@ -6,7 +6,6 @@ import { apiErrorMessage } from '../lib/apiError'
 import Modal from '../components/common/Modal'
 
 const NOTE_TYPES = Object.keys(NOTE_TYPE_LABEL) as NoteType[]
-const selectCls = 'rounded-lg border border-slate-700 bg-slate-950 px-2.5 py-1.5 text-sm text-slate-200 outline-none focus:border-sky-500'
 
 // 노트 작성/수정 모달. 목록(생성)과 상세(수정) 양쪽에서 재사용.
 export default function NoteFormModal({ note, onClose, onSaved }: { note: Note | null; onClose: () => void; onSaved: () => void }) {
@@ -40,23 +39,24 @@ export default function NoteFormModal({ note, onClose, onSaved }: { note: Note |
     <Modal open onClose={onClose} title={isEdit ? '노트 수정' : '노트 작성'} size="xl">
       <div className="space-y-3">
         <div className="flex gap-2">
-          <select value={type} onChange={(e) => setType(e.target.value as NoteType)} className={selectCls}>
+          {/* 다른 화면과 같은 공용 클래스(teal 테마). 예전에는 이 모달만 하늘색 버튼이었다 */}
+          <select value={type} onChange={(e) => setType(e.target.value as NoteType)} className="select-field">
             {NOTE_TYPES.map((t) => <option key={t} value={t}>{NOTE_TYPE_LABEL[t]}</option>)}
           </select>
-          <select value={language} onChange={(e) => setLanguage(e.target.value)} className={selectCls}>
+          <select value={language} onChange={(e) => setLanguage(e.target.value)} className="select-field">
             <option value="">언어 없음</option>
             {LANGUAGES.map((l) => <option key={l} value={l}>{languageLabel(l)}</option>)}
           </select>
         </div>
-        <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="제목" className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-sky-500" />
-        <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={16} placeholder={NOTE_BODY_PLACEHOLDER} className="w-full resize-y rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 font-mono text-[13px] leading-relaxed text-slate-100 outline-none focus:border-sky-500" />
-        <input value={tagsInput} onChange={(e) => setTagsInput(e.target.value)} placeholder="태그 (쉼표로 구분)" className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-sky-500" />
+        <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="제목" className="input-field" />
+        <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={16} placeholder={NOTE_BODY_PLACEHOLDER} className="input-field resize-y text-[13px] leading-relaxed" />
+        <input value={tagsInput} onChange={(e) => setTagsInput(e.target.value)} placeholder="태그 (쉼표로 구분)" className="input-field" />
 
         {error && <p className="text-sm text-rose-400">{error}</p>}
 
         <div className="flex justify-end gap-2 pt-1">
-          <button onClick={onClose} className="rounded-lg border border-slate-700 px-4 py-1.5 text-sm text-slate-300 hover:bg-slate-800">취소</button>
-          <button onClick={save} disabled={saving} className="rounded-lg bg-sky-500 px-4 py-1.5 text-sm font-medium text-white hover:bg-sky-400 disabled:opacity-60">
+          <button onClick={onClose} className="btn-ghost">취소</button>
+          <button onClick={save} disabled={saving} className="btn-primary">
             {saving ? '저장 중…' : '저장'}
           </button>
         </div>

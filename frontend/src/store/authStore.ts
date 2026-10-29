@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import type { User } from '../types'
-import { clearAccessToken, setAccessToken } from '../lib/tokens'
+import { clearAccessToken, getAccessToken, setAccessToken } from '../lib/tokens'
 import client from '../api/client'
 
 interface AuthState {
@@ -13,7 +13,7 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
-  token: localStorage.getItem('token'),
+  token: getAccessToken(),
   setAuth: (user, token) => {
     setAccessToken(token)
     set({ user, token })

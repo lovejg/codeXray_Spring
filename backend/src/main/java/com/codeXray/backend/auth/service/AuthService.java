@@ -44,7 +44,6 @@ public class AuthService {
 
         String encoded = passwordEncoder.encode(password);
 
-
         User user = User.builder()
                 .email(email)
                 .password(encoded)
@@ -54,7 +53,6 @@ public class AuthService {
                 .build();
 
         userRepository.save(user);
-
 
         issueAndSendVerification(user);
     }
@@ -93,7 +91,6 @@ public class AuthService {
             throw new BusinessException(ErrorCode.EMAIL_NOT_VERIFIED);
         }
 
-
         String accessToken = jwtUtil.createAccessToken(user.getId(), user.getRole());
         String refreshToken = refreshTokenStore.issue(user.getId());
 
@@ -105,10 +102,11 @@ public class AuthService {
         Long userId = refreshTokenStore.findUserId(refreshToken)
                 .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN));
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND));
-
         refreshTokenStore.delete(refreshToken); // rotation의 핵심
+
+        // 탈퇴한 계정의 토큰이 다른 기기에 남아 있던 경우. 404 가 아니라 "다시 로그인"으로 끝낸다
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN));
 
         String newAccessToken = jwtUtil.createAccessToken(userId, user.getRole());
         String newRefreshToken = refreshTokenStore.issue(userId);

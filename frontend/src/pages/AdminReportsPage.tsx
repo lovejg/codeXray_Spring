@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { communityApi } from '../api/community'
-import { REPORT_STATUS_LABEL, REPORT_STATUS_COLOR, type Report, type ReportStatus } from '../types'
+import { REPORT_STATUS_LABEL, REPORT_STATUS_COLOR, postPath, type Report, type ReportStatus } from '../types'
 import { timeAgo } from '../lib/date'
 import Spinner from '../components/common/Spinner'
 import EmptyState from '../components/common/EmptyState'
@@ -60,7 +60,7 @@ function ReportCard({ report }: { report: Report }) {
           {REPORT_STATUS_LABEL[report.status]}
         </span>
         <PostTypeBadge type={report.post.type} />
-        <Link to={`/community/${report.post.id}`} className="truncate font-medium text-slate-100 transition hover:text-teal-300">
+        <Link to={postPath(report.post.type, report.post.id)} className="truncate font-medium text-slate-100 transition hover:text-teal-300">
           {report.post.title}
         </Link>
         {report.post.hidden && <span className="text-xs text-rose-400">숨김됨</span>}

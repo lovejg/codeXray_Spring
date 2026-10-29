@@ -57,7 +57,7 @@ public class NoteService {
         noteRepository.delete(note);
     }
 
-    // 404(없음) → 403(남의 것) 순서로 검사. Stage 5 getOwnedSolution 과 동일 패턴.
+    // 404(없음) → 403(남의 것) 순서로 검사. SolutionService.getOwnedSolution 과 같은 방식
     private Note getOwnedNote(Long id, Long userId) {
         Note note = noteRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOTE_NOT_FOUND));

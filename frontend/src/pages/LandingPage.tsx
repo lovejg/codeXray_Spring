@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import Navbar from '../components/layout/Navbar'
+import { useAuthStore } from '../store/authStore'
 
 // ─────────────────────────────────────────────────────────────
 // 메인(랜딩) 페이지. 앱 공용 Navbar를 얹어 다른 기능들과 하나로 이어지게 함.
@@ -36,8 +37,15 @@ const ghostLink =
   'inline-flex items-center gap-2 border border-slate-700 px-5 py-2.5 font-mono text-sm text-slate-300 transition hover:border-slate-500 hover:text-white'
 
 // ── Hero: 타이핑 애니메이션 ──
+// 시작하기 버튼의 목적지. 이미 로그인했으면 가입 화면 대신 문제 목록으로
+function useStartPath() {
+  const user = useAuthStore((s) => s.user)
+  return user ? '/problems' : '/register'
+}
+
 function Hero() {
   const typed = useTypewriter(TYPE_LINES)
+  const startPath = useStartPath()
 
   return (
     <section className="border-b border-slate-800">
@@ -60,7 +68,7 @@ function Hero() {
         </p>
 
         <div className="mt-10 flex flex-wrap items-center gap-3">
-          <Link to="/register" className={primaryLink}>
+          <Link to={startPath} className={primaryLink}>
             시작하기 <span aria-hidden>→</span>
           </Link>
           <Link to="/problems" className={ghostLink}>
@@ -262,6 +270,7 @@ function CommunityPreview() {
 
 // ── 하단 CTA: 상자와 빛 번짐 없이 프롬프트 한 줄 ──
 function FinalCta() {
+  const startPath = useStartPath()
   return (
     <section className="mx-auto max-w-6xl px-6 py-20">
       <p className="mb-6 font-mono text-lg text-slate-300">
@@ -271,7 +280,7 @@ function FinalCta() {
       </p>
       <h2 className="mb-3 font-mono text-2xl font-bold text-white sm:text-3xl">지금 바로 시작하세요</h2>
       <p className="mb-8 text-slate-400">이메일 하나면 충분합니다. 무료로 이용해보세요.</p>
-      <Link to="/register" className={primaryLink}>
+      <Link to={startPath} className={primaryLink}>
         무료로 시작하기 <span aria-hidden>→</span>
       </Link>
     </section>
@@ -285,7 +294,8 @@ function LandingFooter() {
       <div className="mx-auto flex max-w-6xl flex-col gap-2 px-6 py-10 font-mono text-xs text-slate-600 sm:flex-row">
         <span className="text-slate-500">❯ codeXray</span>
         <span>알고리즘 학습 기록 &amp; 분석</span>
-        <span className="sm:ml-auto">v0.1.0 · 학습용 프로젝트</span>
+        <Link to="/privacy" className="text-slate-500 hover:text-slate-300 sm:ml-auto">개인정보처리방침</Link>
+        <span>v0.1.0 · 학습용 프로젝트</span>
       </div>
     </footer>
   )
