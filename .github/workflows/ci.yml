@@ -76,7 +76,6 @@ jobs:
           MAIL_FROM: noreply@codexray.local
           APP_BASE_URL: http://localhost:8080
           ADMIN_EMAIL: admin@codexray.local
-          ADMIN_API_KEY: ci-dummy-admin-key
         run: ./gradlew test --no-daemon
 
   # ── 이미지 빌드 & GHCR 업로드 ──
@@ -177,14 +176,13 @@ jobs:
           DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          ADMIN_API_KEY: ${{ secrets.ADMIN_API_KEY }}
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
         run: |
           missing=0
           for n in DEPLOY_HOST DEPLOY_USER APP_BASE_URL MAIL_FROM SMTP_HOST SMTP_PORT SMTP_USER R2_ENDPOINT R2_BUCKET \
-                   DEPLOY_SSH_KEY DEPLOY_KNOWN_HOSTS DB_PASSWORD JWT_SECRET ADMIN_API_KEY SMTP_PASS R2_ACCESS_KEY_ID R2_SECRET_ACCESS_KEY; do
+                   DEPLOY_SSH_KEY DEPLOY_KNOWN_HOSTS DB_PASSWORD JWT_SECRET SMTP_PASS R2_ACCESS_KEY_ID R2_SECRET_ACCESS_KEY; do
             if [ -z "${!n}" ]; then echo "::error::production 환경에 $n 이 없다"; missing=1; fi
           done
           exit $missing
@@ -208,7 +206,6 @@ jobs:
         env:
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          ADMIN_API_KEY: ${{ secrets.ADMIN_API_KEY }}
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
@@ -222,7 +219,6 @@ jobs:
             echo "DB_USERNAME=codexray"
             echo "DB_PASSWORD=${DB_PASSWORD}"
             echo "JWT_SECRET=${JWT_SECRET}"
-            echo "ADMIN_API_KEY=${ADMIN_API_KEY}"
             echo "ADMIN_EMAIL=${{ vars.ADMIN_EMAIL }}"
             echo "APP_BASE_URL=${{ vars.APP_BASE_URL }}"
             echo "SMTP_HOST=${{ vars.SMTP_HOST }}"

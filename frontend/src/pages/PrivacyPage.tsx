@@ -94,7 +94,10 @@ export default function PrivacyPage() {
 
         <Section title="7. 문의처">
           <p>
-            <Link to="/suggestions" className="text-teal-300 hover:text-teal-200">건의사항 게시판</Link>에 남겨 주세요.
+            이메일{' '}
+            <a href="mailto:tmakdrl@naver.com" className="text-teal-300 hover:text-teal-200">tmakdrl@naver.com</a>
+            으로 보내 주세요.{' '}
+            <Link to="/suggestions" className="text-teal-300 hover:text-teal-200">건의사항 게시판</Link>에 남겨도 됩니다.
           </p>
         </Section>
 

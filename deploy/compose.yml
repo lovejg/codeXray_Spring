@@ -54,7 +54,6 @@ services:
       APP_BASE_URL: ${APP_BASE_URL:?APP_BASE_URL 이 .env 에 없다}
       APP_CORS_ORIGINS: ""
       ADMIN_EMAIL: ${ADMIN_EMAIL}
-      ADMIN_API_KEY: ${ADMIN_API_KEY:?ADMIN_API_KEY 가 .env 에 없다}
       # 비면 AI 요청만 FAILED(AI_UNAVAILABLE)로 끝나고 앱은 돈다
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       AI_DAILY_LIMIT: "2"
