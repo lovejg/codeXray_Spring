@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Lightbulb } from 'lucide-react'
 import { aiApi, pollAiJob } from '../../api/ai'
-import { apiErrorCode, apiErrorMessage } from '../../lib/apiError'
+import { aiErrorText } from '../../lib/apiError'
 import Markdown from './Markdown'
 
 // 문제가 안 풀릴 때, 정답 코드 없이 단계별 힌트를 받는 패널. 하루 한도 공유.
@@ -21,21 +21,10 @@ export default function AiHintPanel({ problemId }: { problemId: number }) {
       if (job.status === 'DONE') {
         setResult(job.result ?? '')
       } else {
-        setError(job.errorCode === 'AI_UNAVAILABLE' ? 'AI 기능을 현재 사용할 수 없습니다.' : 'AI 힌트에 실패했습니다.')
+        setError(job.errorCode === 'AI_UNAVAILABLE' ? 'AI 기능을 지금 사용할 수 없습니다.' : 'AI 힌트에 실패했습니다.')
       }
     } catch (err) {
-      if (err instanceof Error && err.message === 'TIMEOUT') {
-        setError('처리가 지연되고 있어요. 잠시 후 다시 시도해 주세요.')
-        return
-      }
-      const c = apiErrorCode(err)
-      if (c === 'AI_RATE_LIMIT_EXCEEDED') {
-        setError('오늘 AI 사용 한도를 모두 사용했습니다. 내일 다시 시도해 주세요.')
-      } else if (c === 'AI_UNAVAILABLE') {
-        setError('AI 기능을 현재 사용할 수 없습니다. (서버에 API 키가 없을 수 있어요.)')
-      } else {
-        setError(apiErrorMessage(err, 'AI 힌트에 실패했습니다.'))
-      }
+      setError(aiErrorText(err, 'AI 힌트에 실패했습니다.'))
     } finally {
       setLoading(false)
     }

@@ -124,6 +124,11 @@ export const COMMUNITY_POST_TYPES: PostType[] = ['QUESTION', 'SOLUTION_SHARE']
 export const SUGGESTION_POST_TYPES: PostType[] = ['FEEDBACK', 'BUG_REPORT', 'FEATURE_REQUEST']
 export const VOTABLE_POST_TYPES: PostType[] = ['QUESTION', 'SOLUTION_SHARE']
 
+// 글 상세 주소. 건의사항 글은 커뮤니티가 아니라 건의사항 화면에서 연다
+export function postPath(type: PostType | string | undefined | null, id: number | string): string {
+  return SUGGESTION_POST_TYPES.includes(type as PostType) ? `/suggestions/${id}` : `/community/${id}`
+}
+
 export const POST_TYPE_STYLE: Record<PostType, { bg: string; text: string }> = {
   QUESTION: { bg: '#1e3a5f', text: '#60a5fa' },
   SOLUTION_SHARE: { bg: '#064e3b', text: '#10b981' },
@@ -247,6 +252,7 @@ export interface User {
   nickname: string
   role: UserRole
   emailVerified: boolean
+  provider: 'LOCAL' | 'GOOGLE' | 'NAVER'
 }
 
 // ─── 알림 ───

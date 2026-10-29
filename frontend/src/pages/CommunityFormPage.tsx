@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { communityApi } from '../api/community'
-import { COMMUNITY_POST_TYPES, POST_TYPE_LABEL, type PostType, type Problem } from '../types'
+import { COMMUNITY_POST_TYPES, POST_TYPE_LABEL, postPath, type PostType, type Problem } from '../types'
 import { apiErrorMessage } from '../lib/apiError'
 import Spinner from '../components/common/Spinner'
 import ProblemPicker from '../components/common/ProblemPicker'
@@ -43,7 +43,8 @@ export default function CommunityFormPage() {
     try {
       if (isEdit) {
         await communityApi.updatePost(editId!, { title: title.trim(), content, isPrivate })
-        navigate(`/community/${editId}`)
+        // 건의사항 글도 이 화면에서 고친다. 저장 뒤에는 원래 있던 화면으로 돌아간다
+        navigate(postPath(editing?.type, editId!))
       } else {
         const created = await communityApi.createPost({
           type,

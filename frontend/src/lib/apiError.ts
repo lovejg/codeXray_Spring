@@ -20,6 +20,15 @@ export function apiErrorMessage(err: unknown, fallback = '요청을 처리하지
   return fallback
 }
 
+// AI 분석·힌트 패널이 같이 쓰는 오류 문구. 요청 실패, 처리 실패(FAILED 잡), 폴링 시간 초과를 한 곳에서 고른다
+export function aiErrorText(err: unknown, fallback: string): string {
+  if (err instanceof Error && err.message === 'TIMEOUT') return '처리가 지연되고 있어요. 잠시 후 다시 시도해 주세요.'
+  const code = apiErrorCode(err)
+  if (code === 'AI_RATE_LIMIT_EXCEEDED') return '오늘 AI 사용 한도를 모두 썼습니다. 내일 다시 시도해 주세요.'
+  if (code === 'AI_UNAVAILABLE') return 'AI 기능을 지금 사용할 수 없습니다.'
+  return apiErrorMessage(err, fallback)
+}
+
 export function apiErrorCode(err: unknown): string | undefined {
   if (err instanceof AxiosError) {
     const data = err.response?.data as ErrorBody | undefined

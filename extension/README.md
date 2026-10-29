@@ -16,17 +16,17 @@
 - `popup.html` / `popup.js` — 로그인 팝업
 
 ## 배포용 주소 변경
-로컬 → 실서버로 바꿀 때 **2곳만** 수정:
+지금 `config.js`는 로컬(`localhost:8080`, `localhost:5173`)을 가리킵니다. 운영 사이트(https://codexray.org)에 저장하려면 **2곳만** 수정:
 1. `config.js` 의 `CODEXRAY_API`, `CODEXRAY_APP_ORIGIN`
-2. `manifest.json` 의 `host_permissions` (백엔드 도메인 추가)
+2. `manifest.json` 의 `host_permissions` (사이트 도메인 추가)
 
-예) 배포 시:
+운영은 화면과 API가 같은 주소(nginx가 `/api`만 백엔드로 넘김)라 API 도메인을 따로 두지 않습니다:
 ```js
 // config.js
-var CODEXRAY_API = 'https://api.codexray.example.com/api'
-var CODEXRAY_APP_ORIGIN = 'https://codexray.example.com'
+var CODEXRAY_API = 'https://codexray.org/api'
+var CODEXRAY_APP_ORIGIN = 'https://codexray.org'
 ```
 ```json
 // manifest.json host_permissions
-"https://api.codexray.example.com/*"
+"https://codexray.org/*"
 ```

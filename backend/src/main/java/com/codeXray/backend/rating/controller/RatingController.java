@@ -1,7 +1,6 @@
 package com.codeXray.backend.rating.controller;
 
 import com.codeXray.backend.rating.dto.FeedbackResponse;
-import com.codeXray.backend.rating.dto.RecomputeResponse;
 import com.codeXray.backend.rating.dto.SubmitFeedbackRequest;
 import com.codeXray.backend.rating.service.RatingService;
 import jakarta.validation.Valid;
@@ -33,11 +32,5 @@ public class RatingController {
             @AuthenticationPrincipal Long userId
     ) {
         return ratingService.getMyFeedback(userId, problemId);
-    }
-
-    // [Admin] 전체 문제 tier 재계산 (주간 배치 수동 트리거). ROLE_ADMIN 필요
-    @PostMapping("/recompute-all")
-    public RecomputeResponse recomputeAll() {
-        return new RecomputeResponse(ratingService.recomputeAll());
     }
 }

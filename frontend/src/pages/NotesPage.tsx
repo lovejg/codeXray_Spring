@@ -42,7 +42,7 @@ export default function NotesPage() {
       </PageHeader>
 
       <div className="mb-5 flex flex-wrap items-center gap-2">
-        <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value as NoteType | '')} className={selectCls}>
+        <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value as NoteType | '')} className="select-field">
           <option value="">전체 유형</option>
           {NOTE_TYPES.map((t) => <option key={t} value={t}>{NOTE_TYPE_LABEL[t]}</option>)}
         </select>
@@ -100,5 +100,3 @@ export default function NotesPage() {
     </div>
   )
 }
-
-const selectCls = 'rounded-md border border-slate-800 bg-slate-950 px-3 py-2 font-mono text-sm text-slate-200 outline-none transition focus:border-teal-400/60'

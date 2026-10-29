@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClientException;
 
 import java.util.UUID;
-
+import java.util.function.Supplier;
 
 @Service
 public class OAuthService {
@@ -58,7 +58,7 @@ public class OAuthService {
      * 소셜 서버와의 통신(토큰교환/유저조회)이 실패하면 날것의 500 대신 OAUTH_FAILED(401)로 변환.
      * (잘못된 code, 만료, 자격증명 오류 등은 모두 "소셜 로그인 실패"로 사용자에게 보임)
      */
-    private OAuthUserInfo fetchOrFail(java.util.function.Supplier<OAuthUserInfo> fetch) {
+    private OAuthUserInfo fetchOrFail(Supplier<OAuthUserInfo> fetch) {
         try {
             return fetch.get();
         } catch (RestClientException e) {

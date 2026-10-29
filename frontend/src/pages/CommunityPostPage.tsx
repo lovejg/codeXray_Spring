@@ -5,7 +5,7 @@ import { Lock, Pencil, Trash2, Flag, EyeOff } from 'lucide-react'
 import { communityApi } from '../api/community'
 import { useAuthStore, useIsAdmin } from '../store/authStore'
 import { timeAgo } from '../lib/date'
-import { VOTABLE_POST_TYPES } from '../types'
+import { VOTABLE_POST_TYPES, type Comment } from '../types'
 import Spinner from '../components/common/Spinner'
 import EmptyState from '../components/common/EmptyState'
 import Markdown from '../components/common/Markdown'
@@ -94,15 +94,16 @@ export default function CommunityPostPage() {
       </div>
 
       {/* 댓글 */}
-      <CommentSection postId={post.id} comments={post.comments} canComment={!!user && !post.hidden} />
+      <CommentSection postId={post.id} comments={post.comments} hidden={post.hidden} />
 
       {reporting && <ReportModal postId={post.id} onClose={() => setReporting(false)} />}
     </div>
   )
 }
 
-function CommentSection({ postId, comments, canComment }: { postId: number; comments: import('../types').Comment[]; canComment: boolean }) {
+function CommentSection({ postId, comments, hidden }: { postId: number; comments: Comment[]; hidden: boolean }) {
   const user = useAuthStore((s) => s.user)
+  const canComment = !!user && !hidden
   const isAdmin = useIsAdmin()
   const qc = useQueryClient()
   const [content, setContent] = useState('')
@@ -160,7 +161,9 @@ function CommentSection({ postId, comments, canComment }: { postId: number; comm
           </div>
         </div>
       ) : (
-        <p className="mt-4 text-sm text-slate-500">댓글을 작성하려면 로그인이 필요합니다.</p>
+        <p className="mt-4 text-sm text-slate-500">
+          {hidden ? '숨김 처리된 글에는 댓글을 달 수 없습니다.' : '댓글을 작성하려면 로그인이 필요합니다.'}
+        </p>
       )}
     </section>
   )

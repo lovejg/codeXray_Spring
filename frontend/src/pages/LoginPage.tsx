@@ -4,6 +4,7 @@ import { authApi } from '../api/auth'
 import { useAuthStore } from '../store/authStore'
 import { apiErrorCode, apiErrorMessage } from '../lib/apiError'
 import { startOAuth } from '../lib/oauth'
+import { setAccessToken } from '../lib/tokens'
 
 export default function LoginPage() {
   const setAuth = useAuthStore((s) => s.setAuth)
@@ -22,9 +23,8 @@ export default function LoginPage() {
     setLoading(true)
     try {
       const { accessToken } = await authApi.login(email, password)
-      // 유저 정보를 위해 access token 을 먼저 저장한 뒤 me 조회
-      useAuthStore.setState({ token: accessToken })
-      localStorage.setItem('token', accessToken)
+      // me 요청에 토큰이 실리도록 먼저 저장한 뒤 조회
+      setAccessToken(accessToken)
       const user = await authApi.me()
       setAuth(user, accessToken)
       navigate(from, { replace: true })

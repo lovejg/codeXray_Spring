@@ -5,7 +5,6 @@ import org.springframework.http.HttpStatus;
 /**
  * 애플리케이션 전역 에러 코드.
  * 각 코드는 (HTTP 상태 + 기본 메시지)를 들고 다닌다.
- * 도메인별 코드는 단계 진행하면서 여기에 계속 추가하면 됨 (예: EMAIL_DUPLICATED).
  */
 public enum ErrorCode {
 
@@ -31,6 +30,7 @@ public enum ErrorCode {
 
     // ── 계정 관리 ──
     PASSWORD_MISMATCH(HttpStatus.BAD_REQUEST, "현재 비밀번호가 일치하지 않습니다."),
+    SOCIAL_ACCOUNT_NO_PASSWORD(HttpStatus.BAD_REQUEST, "소셜 로그인 계정은 비밀번호가 없어 변경할 수 없습니다."),
 
     // ── 토큰 재발급 ──
     INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 리프레시 토큰입니다. 다시 로그인해 주세요."),

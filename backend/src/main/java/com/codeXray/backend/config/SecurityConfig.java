@@ -69,7 +69,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PATCH, "/api/community/posts/*/status").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/community/posts/*/admin-reply").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/community/**").permitAll() // 게시글 조회는 공개(선택적 인증)
-                        .requestMatchers(HttpMethod.POST, "/api/ratings/recompute-all").hasRole("ADMIN") // 배치는 어드민만
                         .requestMatchers("/api/admin/**").hasRole("ADMIN") // 어드민 배치 수동 트리거 등
                         .anyRequest().authenticated()                 // 그 외는 인증 필요
                 )

@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Entity
@@ -53,7 +52,6 @@ public class User {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
-
 
     @Builder
     public User(String email, String password, String nickname, UserRole role, AuthProvider provider, String providerId) {

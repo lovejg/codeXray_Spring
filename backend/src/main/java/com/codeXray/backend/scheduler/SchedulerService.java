@@ -82,7 +82,7 @@ public class SchedulerService {
         return run("stale-suggestion-digest", () -> {
             LocalDateTime cutoff = LocalDateTime.now().minusDays(7);
             List<CommunityPost> stale = postRepository.findStaleSuggestions(SUGGESTION_TYPES, cutoff);
-            if (stale.isEmpty()) return Map.of("count", 0, "notified", 0);
+            if (stale.isEmpty()) return Map.of("count", 0);
 
             CommunityPost oldest = stale.get(0);
             long oldestDays = Duration.between(oldest.getCreatedAt(), LocalDateTime.now()).toDays();
