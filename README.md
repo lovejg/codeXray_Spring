@@ -336,6 +336,7 @@ codeXray/
 │   ├── compose.yml          # frontend + backend + pg + redis + kafka 한 묶음
 │   ├── deploy.sh            # SHA 태그로 띄우고, 안 되면 이전 SHA로 되돌림
 │   ├── backup.sh            # 덤프 → 복구 검증 → R2 업로드 (매일 + 배포 직전)
+│   ├── demo-seed.sh/.sql    # 시연 데이터(.example 계정 5개, 풀이·피드백·커뮤니티·건의사항). 몇 번 돌려도 같은 모양
 │   └── .env.example
 └── .github/workflows/
     └── ci.yml               # CI(test) + CD(Arm 이미지 → GHCR → SSH 배포)

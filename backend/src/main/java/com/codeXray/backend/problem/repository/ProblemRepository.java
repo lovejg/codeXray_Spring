@@ -17,6 +17,10 @@ public interface ProblemRepository
     // (파생 쿼리 → 자동으로 WHERE link LIKE %/lessons/{번호} 생성)
     Optional<Problem> findByLinkEndingWith(String suffix);
 
+    // 티어가 아직 계산되지 않은 문제가 하나라도 있는지 (앱 시작 시 재계산 여부 판단, TierBootstrap)
+    // (파생 쿼리 → WHERE tier IS NULL 을 하나 찾으면 멈춤)
+    boolean existsByTierIsNull();
+
     // AI 힌트용: 문제의 알고리즘 태그 이름들 (lazy 컬렉션 대신 스칼라 조회)
     @Query("select t.name from Problem p join p.problemTags pt join pt.tag t where p.id = :id")
     List<String> findTagNamesByProblemId(@Param("id") Long id);
