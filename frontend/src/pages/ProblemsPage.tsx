@@ -133,23 +133,26 @@ export default function ProblemsPage() {
 
       {data && (
         <>
-          <div className="glass-card overflow-hidden">
-            <table className="w-full text-[15px]">
+          {/* table-fixed: 칸 폭을 내용이 아니라 아래 폭으로 정한다. 긴 제목·티어 이름이 있어도 칸과 머리줄이 밀리지 않는다.
+              좁은 화면에서는 표가 최소 폭을 지키고 이 상자 안에서만 가로로 밀린다 */}
+          <div className="glass-card overflow-x-auto">
+            <table className="w-full min-w-[680px] table-fixed text-[15px]">
               <thead className="border-b border-slate-800 bg-slate-950/60 text-left font-mono text-xs uppercase tracking-widest text-slate-500">
                 <tr>
                   <th className="px-5 py-3.5 font-semibold">제목</th>
                   <th className="w-24 px-3 py-3.5 font-semibold">레벨</th>
-                  <th className="w-32 px-3 py-3.5 font-semibold">티어</th>
-                  <th className="px-3 py-3.5 font-semibold">태그</th>
+                  <th className="w-40 px-3 py-3.5 font-semibold">티어</th>
+                  <th className="w-56 px-3 py-3.5 font-semibold">태그</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
                 {data.items.map((p) => (
                   <tr key={p.id} className="group transition hover:bg-white/5">
                     <td className="px-5 py-4">
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-mono text-teal-400 opacity-0 transition group-hover:opacity-100">&gt;</span>
-                        <Link to={`/problems/${p.id}`} className="font-semibold text-slate-100 transition hover:text-teal-300">
+                      {/* 긴 제목은 한 줄로 두고 넘치면 … 로 자른다. 전체 제목은 마우스를 올리면(title) 보인다 */}
+                      <div className="flex min-w-0 items-center gap-1.5">
+                        <span className="shrink-0 font-mono text-teal-400 opacity-0 transition group-hover:opacity-100">&gt;</span>
+                        <Link to={`/problems/${p.id}`} title={p.title} className="truncate font-semibold text-slate-100 transition hover:text-teal-300">
                           {p.title}
                         </Link>
                       </div>
@@ -158,7 +161,8 @@ export default function ProblemsPage() {
                     <td className="px-3 py-4"><LevelBadge level={p.level} /></td>
                     <td className="px-3 py-4"><TierBadge tier={p.tier} size="md" /></td>
                     <td className="px-3 py-4">
-                      <div className="flex flex-wrap gap-1.5">
+                      {/* 태그는 한 줄. 칸을 넘치는 태그는 보이지 않게 잘라 줄 높이가 늘지 않게 한다(문제 상세에 전부 있다) */}
+                      <div className="flex flex-nowrap gap-1.5 overflow-hidden">
                         {p.tags.slice(0, 4).map((t) => <TagBadge key={t.id} name={t.name} />)}
                       </div>
                     </td>

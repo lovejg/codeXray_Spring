@@ -5,6 +5,8 @@ import Navbar from '../components/layout/Navbar'
 // ─────────────────────────────────────────────────────────────
 // 메인(랜딩) 페이지. 앱 공용 Navbar를 얹어 다른 기능들과 하나로 이어지게 함.
 // 터미널/개발자 감성: 타이핑 애니메이션 + 기능별 터미널 창 예시.
+// 꾸밈은 터미널 화면에서 실제로 볼 법한 것만 쓴다(빛 번짐, 알약 배지, 창 신호등 점, 떠오르는 카드 없음).
+// 왼쪽 정렬, 각진 모서리, 선 하나로 칸을 나눈다
 // ─────────────────────────────────────────────────────────────
 
 const TYPE_LINES = [
@@ -27,43 +29,41 @@ export default function LandingPage() {
   )
 }
 
+// 랜딩 안에서 쓰는 버튼 두 가지. 꽉 찬 색 버튼 대신 터미널의 선택지처럼 테두리와 글자만
+const primaryLink =
+  'inline-flex items-center gap-2 border border-teal-400/60 px-5 py-2.5 font-mono text-sm text-teal-300 transition hover:bg-teal-400/10'
+const ghostLink =
+  'inline-flex items-center gap-2 border border-slate-700 px-5 py-2.5 font-mono text-sm text-slate-300 transition hover:border-slate-500 hover:text-white'
+
 // ── Hero: 타이핑 애니메이션 ──
 function Hero() {
   const typed = useTypewriter(TYPE_LINES)
 
   return (
-    <section className="relative overflow-hidden">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute left-1/2 top-[-20%] h-[420px] w-[720px] -translate-x-1/2 rounded-full opacity-20 blur-[120px]"
-        style={{ background: 'radial-gradient(circle, #2dd4bf 0%, transparent 70%)' }}
-      />
-      <div className="mx-auto max-w-6xl px-6 py-24 text-center">
-        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-slate-800 bg-slate-900/60 px-3 py-1 font-mono text-xs text-slate-400">
-          <span className="h-1.5 w-1.5 rounded-full bg-teal-400 shadow-[0_0_6px_#2dd4bf]" />
-          알고리즘 학습 기록 &amp; 분석 플랫폼
-        </div>
+    <section className="border-b border-slate-800">
+      <div className="mx-auto max-w-6xl px-6 pb-20 pt-20">
+        <p className="mb-6 font-mono text-xs text-slate-500"># 알고리즘 학습 기록 &amp; 분석 플랫폼</p>
 
         <h1 className="font-mono text-4xl font-bold leading-tight tracking-tight text-white sm:text-6xl">
           <span className="text-teal-400">❯</span> codeXray
         </h1>
 
-        <div className="mt-6 flex h-8 items-center justify-center font-mono text-lg text-slate-300 sm:text-2xl">
+        <div className="mt-6 flex h-8 items-center font-mono text-lg text-slate-300 sm:text-2xl">
           <span className="text-slate-600">$&nbsp;</span>
           <span className="text-slate-200">{typed}</span>
           <span className="cursor-blink ml-0.5 text-teal-400">▊</span>
         </div>
 
-        <p className="mx-auto mt-8 max-w-xl text-slate-400">
-          백준·프로그래머스·LeetCode 문제를 한곳에서. 풀이를 기록하고,
+        <p className="mt-8 max-w-xl text-slate-400">
+          프로그래머스 문제를 한곳에서. 풀이를 기록하고,
           AI로 분석받고, 나만의 노트로 복습하세요.
         </p>
 
-        <div className="mt-10 flex items-center justify-center gap-3">
-          <Link to="/register" className="btn-primary px-6 py-3 text-base">
+        <div className="mt-10 flex flex-wrap items-center gap-3">
+          <Link to="/register" className={primaryLink}>
             시작하기 <span aria-hidden>→</span>
           </Link>
-          <Link to="/problems" className="btn-ghost px-6 py-3 text-base">
+          <Link to="/problems" className={ghostLink}>
             문제 둘러보기
           </Link>
         </div>
@@ -72,7 +72,7 @@ function Hero() {
   )
 }
 
-// ── 기능 소개 카드 ──
+// ── 기능 소개 ──
 const FEATURES = [
   { cmd: 'problems', title: '문제 탐색', desc: '689개 이상의 문제를 티어·출처·태그로 검색. `/` 키로 바로 검색하세요.' },
   { cmd: 'solutions', title: '풀이 & AI 분석', desc: '언어별 문법 하이라이팅 에디터로 풀이를 기록하고, AI가 복잡도를 짚어줍니다.' },
@@ -80,19 +80,26 @@ const FEATURES = [
   { cmd: 'community', title: '커뮤니티', desc: '문제에 얽힌 질문과 풀이를 공유하고, 다른 사람의 접근을 참고하세요.' },
 ]
 
+function SectionHead({ label, title }: { label: string; title: string }) {
+  return (
+    <div className="mb-10">
+      <p className="section-title mb-2">{label}</p>
+      <h2 className="font-mono text-2xl font-bold text-white sm:text-3xl">{title}</h2>
+    </div>
+  )
+}
+
 function Features() {
   return (
     <section className="mx-auto max-w-6xl px-6 py-16">
-      <p className="section-title mb-2 text-center">// features</p>
-      <h2 className="mb-12 text-center font-mono text-2xl font-bold text-white sm:text-3xl">
-        기록하고, 분석하고, 성장하기
-      </h2>
+      <SectionHead label="// features" title="기록하고, 분석하고, 성장하기" />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/* 카드 대신 선으로 나눈 칸 네 개. 칸 사이 1px 틈에 테두리 색 배경이 비쳐 선이 된다(겹치는 선 없음) */}
+      <div className="grid gap-px border border-slate-800 bg-slate-800 sm:grid-cols-2 lg:grid-cols-4">
         {FEATURES.map((f) => (
-          <div key={f.cmd} className="glass-card group p-6 transition hover:-translate-y-0.5 hover:border-teal-400/40 hover:bg-slate-900/70">
+          <div key={f.cmd} className="bg-[#0a0d13] p-6">
             <div className="mb-3 font-mono text-sm text-teal-400">
-              <span className="text-slate-600">codeXray </span>
+              <span className="text-slate-600">$ codeXray </span>
               {f.cmd}
             </div>
             <h3 className="mb-2 font-mono text-base font-semibold text-white">{f.title}</h3>
@@ -104,22 +111,20 @@ function Features() {
   )
 }
 
-// ── 공용 터미널 창 ──
+// ── 공용 터미널 창: 신호등 점 대신 제목 줄 하나 ──
 function TerminalWindow({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <div className="glass-card overflow-hidden shadow-xl shadow-black/30">
-      <div className="flex items-center gap-2 border-b border-slate-800 bg-slate-950/70 px-4 py-3">
-        <span className="h-3 w-3 rounded-full bg-rose-500/80" />
-        <span className="h-3 w-3 rounded-full bg-amber-400/80" />
-        <span className="h-3 w-3 rounded-full bg-emerald-500/80" />
-        <span className="ml-3 font-mono text-xs text-slate-500">{title}</span>
+    <div className="border border-slate-800 bg-[#0d1117]">
+      <div className="flex items-center justify-between border-b border-slate-800 px-4 py-2 font-mono text-xs text-slate-500">
+        <span>{title}</span>
+        <span className="text-slate-700">codeXray</span>
       </div>
       {children}
     </div>
   )
 }
 
-// ── 기능별 예시(쇼케이스): 설명 + 터미널 창을 좌우 번갈아 배치 ──
+// ── 기능별 예시(쇼케이스): 왼쪽 설명, 오른쪽 터미널 창 ──
 function Showcases() {
   const items: { label: string; title: string; desc: string; preview: ReactNode }[] = [
     {
@@ -150,20 +155,18 @@ function Showcases() {
 
   return (
     <section className="mx-auto max-w-6xl px-6 py-16">
-      <p className="section-title mb-2 text-center">// how it works</p>
-      <h2 className="mb-16 text-center font-mono text-2xl font-bold text-white sm:text-3xl">
-        실제로 이렇게 쓰여요
-      </h2>
+      <SectionHead label="// how it works" title="실제로 이렇게 쓰여요" />
 
-      <div className="space-y-20">
-        {items.map((it, i) => (
-          <div key={it.label} className="grid items-center gap-8 md:grid-cols-2">
-            <div className={i % 2 === 1 ? 'md:order-2' : ''}>
+      <div className="divide-y divide-slate-800 border-y border-slate-800">
+        {items.map((it) => (
+          <div key={it.label} className="grid items-start gap-8 py-12 md:grid-cols-[2fr_3fr]">
+            <div>
               <p className="section-title mb-3">{it.label}</p>
               <h3 className="mb-3 font-mono text-xl font-bold text-white sm:text-2xl">{it.title}</h3>
               <p className="leading-relaxed text-slate-400">{it.desc}</p>
             </div>
-            <div className={i % 2 === 1 ? 'md:order-1' : ''}>{it.preview}</div>
+            {/* min-w-0: 그리드 칸이 안의 긴 코드 줄만큼 늘어나 페이지가 옆으로 넓어지지 않게. 코드는 창 안에서만 가로로 민다 */}
+            <div className="min-w-0">{it.preview}</div>
           </div>
         ))}
       </div>
@@ -172,23 +175,24 @@ function Showcases() {
 }
 
 // ── 예시 미리보기들 ──
+// 문제, 티어, 태그는 실제 문제 기준(2026-10-29 운영 값). 티어는 체감 난이도가 쌓이면 바뀔 수 있다
 function ProblemsPreview() {
   const rows = [
-    { t: '두 수의 합', tier: 'S3', tags: ['해시', '완전탐색'] },
-    { t: '기차 선로', tier: 'G2', tags: ['백트래킹', '구현'] },
-    { t: '섬 연결하기', tier: 'G4', tags: ['그래프', 'MST'] },
+    { t: '완주하지 못한 선수', tier: 'S3', tags: ['해시'] },
+    { t: '기차 선로', tier: 'P1', tags: ['구현', '백트래킹'] },
+    { t: '섬 연결하기', tier: 'G1', tags: ['유니온파인드', '그리디'] },
   ]
   return (
-    <TerminalWindow title="problems — codeXray">
+    <TerminalWindow title="problems">
       <div className="divide-y divide-slate-800/70 font-mono text-[13px]">
         {rows.map((r) => (
           <div key={r.t} className="flex items-center gap-2 px-4 py-3">
             <span className="text-teal-400">❯</span>
             <span className="text-slate-200">{r.t}</span>
-            <span className="ml-auto rounded border border-amber-500/40 px-1.5 py-0.5 text-[11px] text-amber-300">{r.tier}</span>
+            <span className="ml-auto border border-amber-500/40 px-1.5 py-0.5 text-[11px] text-amber-300">{r.tier}</span>
             <span className="hidden gap-1 sm:flex">
               {r.tags.map((tg) => (
-                <span key={tg} className="rounded border border-teal-500/30 px-1.5 py-0.5 text-[11px] text-teal-300">#{tg}</span>
+                <span key={tg} className="border border-teal-500/30 px-1.5 py-0.5 text-[11px] text-teal-300">#{tg}</span>
               ))}
             </span>
           </div>
@@ -200,25 +204,23 @@ function ProblemsPreview() {
 
 function AiPreview() {
   return (
-    <TerminalWindow title="two-sum.py — codeXray">
+    <TerminalWindow title="solution.py">
       <div className="overflow-x-auto p-5 font-mono text-[13px] leading-relaxed">
         <pre className="text-slate-300">
-{`def two_sum(nums, target):
-    seen = {}
-    for i, n in enumerate(nums):
-        if target - n in seen:
-            return [seen[target - n], i]
-        seen[n] = i`}
+{`def solution(participant, completion):
+    count = {}
+    for name in participant:
+        count[name] = count.get(name, 0) + 1
+    for name in completion:
+        count[name] -= 1
+    return next(n for n, c in count.items() if c > 0)`}
         </pre>
       </div>
-      <div className="border-t border-slate-800 bg-slate-950/50 px-5 py-4 font-mono text-[13px]">
-        <div className="mb-2 flex items-center gap-2 text-teal-400">
-          <span className="h-1.5 w-1.5 rounded-full bg-teal-400 shadow-[0_0_6px_#2dd4bf]" />
-          AI 분석
-        </div>
+      <div className="border-t border-slate-800 px-5 py-4 font-mono text-[13px]">
+        <div className="mb-2 text-teal-400">── AI 분석</div>
         <p className="text-slate-400">
           <span className="text-slate-500">시간</span> O(n) · <span className="text-slate-500">공간</span> O(n) —
-          해시맵으로 한 번의 순회에 해결했습니다. 브루트포스 대비 최적입니다.
+          이름별 개수를 해시맵에 세어 두 번의 순회로 해결했습니다. 동명이인이 있어도 맞습니다.
         </p>
       </div>
     </TerminalWindow>
@@ -227,12 +229,12 @@ function AiPreview() {
 
 function NotePreview() {
   return (
-    <TerminalWindow title="note.md — codeXray">
+    <TerminalWindow title="note.md">
       <div className="p-5 font-mono text-[13px] leading-relaxed">
         <div className="text-slate-200"><span className="text-teal-400">##</span> 이분탐색 경계 실수</div>
         <div className="mt-3 text-slate-400"><span className="text-slate-600">-</span> lo/hi 경계에서 <span className="text-slate-300">&lt;=</span> vs <span className="text-slate-300">&lt;</span> 를 자주 헷갈림</div>
         <div className="text-slate-400"><span className="text-slate-600">-</span> 정답 조건은 보통 <span className="text-slate-300">while (lo &lt;= hi)</span></div>
-        <div className="mt-3 rounded-md border border-slate-800 bg-slate-950 px-3 py-2 text-slate-300">
+        <div className="mt-3 border border-slate-800 bg-[#0a0d13] px-3 py-2 text-slate-300">
           mid = (lo + hi) // 2
         </div>
       </div>
@@ -242,14 +244,14 @@ function NotePreview() {
 
 function CommunityPreview() {
   return (
-    <TerminalWindow title="community — codeXray">
+    <TerminalWindow title="community">
       <div className="p-5 font-mono text-[13px] leading-relaxed">
         <div className="flex items-center gap-2">
-          <span className="rounded border border-teal-500/30 px-1.5 py-0.5 text-[11px] text-teal-300">질문</span>
+          <span className="border border-teal-500/30 px-1.5 py-0.5 text-[11px] text-teal-300">질문</span>
           <span className="text-slate-200">DP 점화식이 안 세워져요</span>
         </div>
         <p className="mt-2 text-slate-400">배낭 문제인데 무게 제한을 어떻게 상태로 잡아야 할까요?</p>
-        <div className="mt-4 border-l-2 border-teal-500/40 pl-3">
+        <div className="mt-4 border-l-2 border-slate-700 pl-3">
           <div className="text-slate-500"><span className="text-teal-400/70">@</span>reviewer</div>
           <p className="mt-1 text-slate-400">dp[i][w] = i번째까지 봤을 때 무게 w에서의 최대 가치로 잡아보세요.</p>
         </div>
@@ -258,27 +260,20 @@ function CommunityPreview() {
   )
 }
 
-// ── 하단 CTA ──
+// ── 하단 CTA: 상자와 빛 번짐 없이 프롬프트 한 줄 ──
 function FinalCta() {
   return (
-    <section className="mx-auto max-w-6xl px-6 py-24 text-center">
-      <div className="glass-card relative overflow-hidden px-6 py-16">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute left-1/2 top-1/2 h-[300px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-[0.15] blur-[100px]"
-          style={{ background: 'radial-gradient(circle, #2dd4bf 0%, transparent 70%)' }}
-        />
-        <p className="mb-6 font-mono text-lg text-slate-300">
-          <span className="text-slate-600">$ </span>
-          codeXray init
-          <span className="cursor-blink ml-0.5 text-teal-400">▊</span>
-        </p>
-        <h2 className="mb-3 font-mono text-2xl font-bold text-white sm:text-3xl">지금 바로 시작하세요</h2>
-        <p className="mb-8 text-slate-400">이메일 하나면 충분합니다. 무료로 이용해보세요.</p>
-        <Link to="/register" className="btn-primary px-7 py-3 text-base">
-          무료로 시작하기 <span aria-hidden>→</span>
-        </Link>
-      </div>
+    <section className="mx-auto max-w-6xl px-6 py-20">
+      <p className="mb-6 font-mono text-lg text-slate-300">
+        <span className="text-slate-600">$ </span>
+        codeXray init
+        <span className="cursor-blink ml-0.5 text-teal-400">▊</span>
+      </p>
+      <h2 className="mb-3 font-mono text-2xl font-bold text-white sm:text-3xl">지금 바로 시작하세요</h2>
+      <p className="mb-8 text-slate-400">이메일 하나면 충분합니다. 무료로 이용해보세요.</p>
+      <Link to="/register" className={primaryLink}>
+        무료로 시작하기 <span aria-hidden>→</span>
+      </Link>
     </section>
   )
 }
@@ -286,8 +281,8 @@ function FinalCta() {
 // ── 푸터 ──
 function LandingFooter() {
   return (
-    <footer className="border-t border-slate-800/80">
-      <div className="mx-auto flex max-w-6xl flex-col items-center gap-2 px-6 py-10 font-mono text-xs text-slate-600 sm:flex-row">
+    <footer className="border-t border-slate-800">
+      <div className="mx-auto flex max-w-6xl flex-col gap-2 px-6 py-10 font-mono text-xs text-slate-600 sm:flex-row">
         <span className="text-slate-500">❯ codeXray</span>
         <span>알고리즘 학습 기록 &amp; 분석</span>
         <span className="sm:ml-auto">v0.1.0 · 학습용 프로젝트</span>

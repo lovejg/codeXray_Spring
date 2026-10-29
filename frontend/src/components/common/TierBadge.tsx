@@ -9,7 +9,7 @@ export default function TierBadge({ tier, size = 'sm' }: { tier?: Tier | null; s
   const px = size === 'md' ? 'px-3 py-1 text-sm' : 'px-2.5 py-0.5 text-xs'
   return (
     <span
-      className={`inline-flex items-center rounded font-mono font-semibold ${px}`}
+      className={`inline-flex items-center whitespace-nowrap rounded font-mono font-semibold ${px}`}
       style={{ color, backgroundColor: `${color}22`, border: `1px solid ${color}44` }}
     >
       {tierLabel(tier)}
