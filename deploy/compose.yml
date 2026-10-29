@@ -64,10 +64,14 @@ services:
       GOOGLE_REDIRECT_URI: ${APP_BASE_URL}/oauth/callback/google
       NAVER_CLIENT_ID: ${NAVER_CLIENT_ID:-}
       NAVER_CLIENT_SECRET: ${NAVER_CLIENT_SECRET:-}
-      # 개발용 설정(application.yml)은 SQL 을 전부 로그에 찍는다. 운영에서는 끈다(로그 양, 값 노출)
-      # 로거 이름 org.hibernate.SQL 은 대문자가 섞여 있다. 환경 변수(LOGGING_LEVEL_...)로 주면 소문자로 바뀌어 다른 로거가 되므로
-      # 설정을 JSON 한 덩어리로 넘긴다
-      SPRING_APPLICATION_JSON: '{"spring":{"jpa":{"show-sql":false}},"logging":{"level":{"org.hibernate.SQL":"warn"}}}'
+      # 운영에서만 덮어쓰는 설정을 JSON 한 덩어리로 넘긴다
+      # - show-sql, org.hibernate.SQL: 개발용 설정(application.yml)은 SQL 을 전부 로그에 찍는다. 운영에서는 끈다(로그 양, 값 노출).
+      #   로거 이름에 대문자가 섞여 있어 환경 변수(LOGGING_LEVEL_...)로는 못 준다(소문자로 바뀌어 다른 로거가 된다)
+      # - forward-headers-strategy: HTTPS 는 바깥 Nginx 가 풀어서 이 앱에는 http 로 온다. 프록시가 붙인 X-Forwarded-Proto(https)를
+      #   믿지 않으면, 브라우저의 Origin(https://codexray.org)과 요청(http://codexray.org)을 다른 출처로 보고
+      #   CORS 검사가 가입·로그인 POST 를 403 "Invalid CORS request" 로 막는다(2026-10-29 첫 배포에서 겪음).
+      #   native: Tomcat 이 사설 IP(도커 네트워크)에서 온 프록시 헤더만 믿는다
+      SPRING_APPLICATION_JSON: '{"spring":{"jpa":{"show-sql":false}},"logging":{"level":{"org.hibernate.SQL":"warn"}},"server":{"forward-headers-strategy":"native"}}'
     # ports 가 없다. frontend 만 이 컨테이너에 닿는다
     # JRE 이미지에 curl 이 없어서 bash 로 요청을 보낸다. 태그 목록은 로그인 없이 열리고 DB(또는 캐시)를 읽는다
     healthcheck:
