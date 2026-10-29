@@ -23,21 +23,20 @@ export default function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 z-20 border-b border-slate-800 bg-[#0a0d13]/90 backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-6xl items-center gap-7 px-6">
-        <Link to="/" className="flex items-center gap-2 font-mono text-lg font-bold">
-          <span className="text-teal-400">❯</span>
-          <span className="text-white">code<span className="text-teal-400">Xray</span></span>
-          <span className="cursor-blink -ml-1 text-teal-400">▊</span>
+    <header className="sticky top-0 z-20 border-b border-slate-800 bg-[#0a0d13]">
+      {/* 좁은 화면: 로고와 계정 메뉴가 첫 줄, 메뉴는 둘째 줄에 가로로 밀어 보는 한 줄 */}
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-7 px-4 sm:h-14 sm:flex-nowrap sm:px-6">
+        <Link to="/" className="flex h-12 items-center font-mono text-base font-bold text-white sm:h-auto">
+          codeXray
         </Link>
 
-        <nav className="flex items-center gap-0.5 font-mono text-sm">
+        <nav className="order-last -mx-4 flex w-[calc(100%+2rem)] items-center gap-0.5 overflow-x-auto border-t border-slate-800 px-2 py-1 font-mono text-sm sm:order-none sm:mx-0 sm:w-auto sm:overflow-visible sm:border-0 sm:p-0">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                `rounded-md px-3 py-1.5 transition ${
+                `shrink-0 whitespace-nowrap rounded-md px-3 py-1.5 transition ${
                   isActive
                     ? 'bg-teal-400/10 text-teal-300'
                     : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'
@@ -51,7 +50,7 @@ export default function Navbar() {
             <NavLink
               to="/admin/reports"
               className={({ isActive }) =>
-                `rounded-md px-3 py-1.5 transition ${
+                `shrink-0 whitespace-nowrap rounded-md px-3 py-1.5 transition ${
                   isActive ? 'bg-amber-500/15 text-amber-300' : 'text-amber-400/70 hover:text-amber-300'
                 }`
               }
@@ -68,10 +67,10 @@ export default function Navbar() {
               <Link
                 to="/profile"
                 title="프로필"
-                className="flex items-center gap-2 rounded-full border border-slate-800 bg-slate-900/50 py-1 pl-1 pr-3 text-sm text-slate-300 transition hover:border-teal-400/50 hover:bg-white/5 hover:text-white"
+                className="flex items-center gap-2 rounded-md px-2 py-1 text-sm text-slate-300 transition hover:bg-white/5 hover:text-white"
               >
-                <Avatar name={user.nickname} size={28} />
-                <span className="max-w-[9rem] truncate">{user.nickname}</span>
+                <Avatar name={user.nickname} size={22} />
+                <span className="max-w-[6rem] truncate sm:max-w-[9rem]">{user.nickname}</span>
               </Link>
               <button
                 onClick={handleLogout}
@@ -84,11 +83,14 @@ export default function Navbar() {
             <>
               <Link
                 to="/login"
-                className="rounded-md px-3 py-1.5 text-sm text-slate-300 transition hover:bg-white/5 hover:text-white"
+                className="whitespace-nowrap rounded-md px-3 py-1.5 text-sm text-slate-300 transition hover:bg-white/5 hover:text-white"
               >
                 로그인
               </Link>
-              <Link to="/register" className="btn-primary">
+              <Link
+                to="/register"
+                className="whitespace-nowrap rounded-md border border-teal-400/40 px-3 py-1 text-sm text-teal-300 transition hover:bg-teal-400/10"
+              >
                 회원가입
               </Link>
             </>
