@@ -1,6 +1,7 @@
 name: CI / CD
 
 # 언제 돌릴지: master 로 push 되거나, master 를 향한 PR 이 생길 때.
+# PR: 테스트만. master push: 테스트 → Arm 이미지 빌드 & GHCR 업로드 → 서버(오라클 A1)에 SSH 배포
 on:
   push:
     branches: [ master ]
@@ -88,6 +89,8 @@ jobs:
     runs-on: ubuntu-latest
     # 정상 소요는 2~4분. 2026-09-08 에 12분 넘게 매달린 run 이 있어 상한을 둔다.
     timeout-minutes: 20
+    outputs:
+      prefix: ${{ steps.owner.outputs.prefix }}
 
     steps:
       - name: Checkout
@@ -96,7 +99,7 @@ jobs:
       # GHCR 이미지 이름은 소문자만 허용. 소유자명(대문자 가능)을 소문자로 변환.
       - name: Lowercase owner
         id: owner
-        run: echo "value=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
+        run: echo "prefix=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/codexray" >> "$GITHUB_OUTPUT"
 
       # GHCR 로그인 — GitHub 이 자동으로 주는 토큰 사용(따로 비번 설정 불필요).
       - name: Log in to GHCR
@@ -106,29 +109,139 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # 서버가 Arm(오라클 A1)이라 Arm 이미지를 만든다. Gradle/npm 빌드는 Dockerfile 이 러너 CPU 로 돌리고,
+      # Arm 흉내(QEMU)는 마지막 실행 단계만 탄다
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Buildx
         uses: docker/setup-buildx-action@v3
 
-      # 백엔드 이미지: latest + 커밋 sha 두 태그로 올림.
+      # 태그는 커밋 sha 하나. 서버는 이 태그를 콕 집어 띄운다(:latest 는 무엇이 떠 있는지 알 수 없고, 되돌릴 수 없다)
       - name: Build & push backend
         uses: docker/build-push-action@v6
         with:
           context: ./backend
+          platforms: linux/arm64
           push: true
-          tags: |
-            ghcr.io/${{ steps.owner.outputs.value }}/codexray-backend:latest
-            ghcr.io/${{ steps.owner.outputs.value }}/codexray-backend:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          tags: ${{ steps.owner.outputs.prefix }}-backend:${{ github.sha }}
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,scope=backend,mode=max
 
-      # 프론트 이미지: 빌드 시 환경변수 불필요(API 는 same-origin /api).
+      # 프론트 이미지. API 는 same-origin /api 라 주소는 필요 없고, 소셜 로그인 Client ID(공개값)만 빌드 때 넣는다
+      # 이 job 은 production 환경 밖이라 환경 변수가 안 보인다. 두 Client ID 는 저장소 수준 Variables 에 둔다
       - name: Build & push frontend
         uses: docker/build-push-action@v6
         with:
           context: ./frontend
+          platforms: linux/arm64
           push: true
-          tags: |
-            ghcr.io/${{ steps.owner.outputs.value }}/codexray-frontend:latest
-            ghcr.io/${{ steps.owner.outputs.value }}/codexray-frontend:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          tags: ${{ steps.owner.outputs.prefix }}-frontend:${{ github.sha }}
+          build-args: |
+            VITE_GOOGLE_CLIENT_ID=${{ vars.GOOGLE_CLIENT_ID }}
+            VITE_NAVER_CLIENT_ID=${{ vars.NAVER_CLIENT_ID }}
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,scope=frontend,mode=max
+
+  # ── 서버에 배포 ──
+  # GitHub Actions 가 SSH 로 서버에 들어가 compose 파일과 .env 를 올리고 deploy.sh 로 새 태그를 띄운다.
+  # 새 버전이 healthy 가 안 되면 deploy.sh 가 이전 태그로 되돌리고 이 job 이 빨간불이 된다
+  deploy:
+    name: Deploy to server
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Settings > Environments 의 production. 비밀값을 이 환경에만 둔다
+    environment: production
+    # 배포는 하나씩. 앞의 배포가 서버에서 도는 중에 취소하면 반쯤 바뀐 채로 남는다
+    concurrency:
+      group: deploy
+      cancel-in-progress: false
+    env:
+      HOST: ${{ vars.DEPLOY_USER }}@${{ vars.DEPLOY_HOST }}
+
+    steps:
+      # 꼭 있어야 하는 값이 빠졌으면 무엇이 없는지 말하고 실패한다. AI, 소셜 로그인, 백업 감시 주소는 비어도 앱이 뜬다
+      - name: Check deploy values
+        env:
+          DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ vars.DEPLOY_USER }}
+          APP_BASE_URL: ${{ vars.APP_BASE_URL }}
+          MAIL_FROM: ${{ vars.MAIL_FROM }}
+          SMTP_HOST: ${{ vars.SMTP_HOST }}
+          SMTP_PORT: ${{ vars.SMTP_PORT }}
+          SMTP_USER: ${{ vars.SMTP_USER }}
+          R2_ENDPOINT: ${{ vars.R2_ENDPOINT }}
+          R2_BUCKET: ${{ vars.R2_BUCKET }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          ADMIN_API_KEY: ${{ secrets.ADMIN_API_KEY }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: |
+          missing=0
+          for n in DEPLOY_HOST DEPLOY_USER APP_BASE_URL MAIL_FROM SMTP_HOST SMTP_PORT SMTP_USER R2_ENDPOINT R2_BUCKET \
+                   DEPLOY_SSH_KEY DEPLOY_KNOWN_HOSTS DB_PASSWORD JWT_SECRET ADMIN_API_KEY SMTP_PASS R2_ACCESS_KEY_ID R2_SECRET_ACCESS_KEY; do
+            if [ -z "${!n}" ]; then echo "::error::production 환경에 $n 이 없다"; missing=1; fi
+          done
+          exit $missing
+
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      # 처음 보는 서버에는 접속하지 않는다. 서버의 호스트 키를 미리 Secrets 에 넣어 두고 그것과 같은지 본다
+      - name: Prepare SSH
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "${{ secrets.DEPLOY_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+
+      - name: Upload compose and scripts
+        run: tar -C deploy -cz compose.yml deploy.sh backup.sh | ssh "$HOST" 'tar -xz -C /srv/codexray'
+
+      # .env 는 배포마다 새로 쓴다. 비밀값을 Secrets 에서 바꾸면 다음 배포부터 들어간다. 다른 사용자는 읽지 못하게 600 으로
+      - name: Write .env
+        env:
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          ADMIN_API_KEY: ${{ secrets.ADMIN_API_KEY }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          BACKUP_PING_URL: ${{ secrets.BACKUP_PING_URL }}
+        run: |
+          {
+            echo "IMAGE_PREFIX=${{ needs.build-and-push.outputs.prefix }}"
+            echo "DB_USERNAME=codexray"
+            echo "DB_PASSWORD=${DB_PASSWORD}"
+            echo "JWT_SECRET=${JWT_SECRET}"
+            echo "ADMIN_API_KEY=${ADMIN_API_KEY}"
+            echo "ADMIN_EMAIL=${{ vars.ADMIN_EMAIL }}"
+            echo "APP_BASE_URL=${{ vars.APP_BASE_URL }}"
+            echo "SMTP_HOST=${{ vars.SMTP_HOST }}"
+            echo "SMTP_PORT=${{ vars.SMTP_PORT }}"
+            echo "SMTP_USER=${{ vars.SMTP_USER }}"
+            echo "SMTP_PASS=${SMTP_PASS}"
+            echo "MAIL_FROM=${{ vars.MAIL_FROM }}"
+            echo "ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}"
+            echo "GOOGLE_CLIENT_ID=${{ vars.GOOGLE_CLIENT_ID }}"
+            echo "GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}"
+            echo "NAVER_CLIENT_ID=${{ vars.NAVER_CLIENT_ID }}"
+            echo "NAVER_CLIENT_SECRET=${NAVER_CLIENT_SECRET}"
+            # 아래는 앱이 아니라 backup.sh 가 읽는다
+            echo "R2_ENDPOINT=${{ vars.R2_ENDPOINT }}"
+            echo "R2_BUCKET=${{ vars.R2_BUCKET }}"
+            echo "R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID}"
+            echo "R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY}"
+            echo "BACKUP_PING_URL=${BACKUP_PING_URL}"
+          } | ssh "$HOST" 'umask 077 && cat > /srv/codexray/.env'
+
+      - name: Deploy
+        run: ssh "$HOST" "bash /srv/codexray/deploy.sh ${{ github.sha }}"

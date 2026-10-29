@@ -1,0 +1,55 @@
+#!/bin/bash
+# 서버의 /srv/codexray 에서 배포 작업(GitHub Actions)이 부른다: ./deploy.sh <이미지 태그(커밋 SHA)>
+# 새 태그로 받아서 띄우고, 모두 healthy 가 안 되면 마지막으로 성공한 태그로 되돌린다.
+# 어느 쪽이든 새 태그가 실패하면 0이 아닌 값으로 끝나서 워크플로가 빨간불이 된다
+set -euo pipefail
+cd "$(dirname "$0")"
+
+NEW_TAG=${1:?이미지 태그를 주세요}
+# 마지막으로 성공한 태그. 처음 배포라면 없다
+LAST_FILE=.deployed-tag
+PREV_TAG=$(cat "$LAST_FILE" 2>/dev/null || true)
+# backend 는 Flyway 마이그레이션(첫 배포는 문제 시드 포함)을 돌린 뒤 뜬다. start_period(90초) 뒤로 여유를 준다
+WAIT_SECONDS=${WAIT_SECONDS:-240}
+
+# 앱 이미지 두 개만 받는다. postgres, redis, kafka 는 버전을 고정해 두어서 배포마다 받을 게 없다
+# --wait: 띄운 뒤 healthcheck 가 있는 컨테이너가 healthy 가 될 때까지 기다리고, 안 되면 실패로 끝난다
+up() {
+  IMAGE_TAG=$1 docker compose pull frontend backend
+  IMAGE_TAG=$1 docker compose up -d --no-build --wait --wait-timeout "$WAIT_SECONDS"
+}
+
+echo "배포: ${PREV_TAG:-없음} -> $NEW_TAG"
+docker network inspect edge > /dev/null 2>&1 || { echo "edge 네트워크가 없다. 바깥 Nginx(/srv/edge)부터 띄운다"; exit 1; }
+
+# 배포 직전 백업. 이번 마이그레이션이 데이터를 망가뜨리면 이 덤프가 바로 앞 상태다.
+# 백업이 실패하면 배포하지 않는다(set -e). 돌아갈 자리 없이 마이그레이션을 돌리지 않는다
+if [ -n "$(docker compose ps -q postgres 2>/dev/null)" ]; then
+  bash ./backup.sh "predeploy-${NEW_TAG:0:7}"
+else
+  echo "DB 가 아직 없다(첫 배포). 배포 전 백업을 건너뛴다"
+fi
+
+if up "$NEW_TAG"; then
+  echo "$NEW_TAG" > "$LAST_FILE"
+  # 일주일 넘게 안 쓴 이미지를 지운다. 되돌릴 때는 레지스트리에서 다시 받는다
+  docker image prune -af --filter "until=168h" > /dev/null || true
+  echo "배포 성공: $NEW_TAG"
+  exit 0
+fi
+
+echo "새 버전이 healthy 가 되지 않았다. backend 로그 마지막 부분:"
+IMAGE_TAG=$NEW_TAG docker compose logs --tail 40 backend || true
+
+if [ -z "$PREV_TAG" ]; then
+  echo "되돌릴 이전 버전이 없다(첫 배포)"
+  exit 1
+fi
+
+echo "이전 버전으로 되돌린다: $PREV_TAG"
+if up "$PREV_TAG"; then
+  echo "되돌리기 성공. 지금 떠 있는 버전: $PREV_TAG"
+else
+  echo "되돌리기도 실패했다. 서버에 들어가서 직접 봐야 한다"
+fi
+exit 1

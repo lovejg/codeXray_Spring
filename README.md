@@ -5,7 +5,7 @@
 
 > 알고리즘 문제풀이 기록과 **AI 코드 분석**을 한곳에서 — 내 풀이를 X-ray 하듯 들여다보는 학습 플랫폼
 
-codeXray는 알고리즘 문제를 풀고, 풀이·메모·노트를 남기고, **Claude 기반 AI로 내 코드를 분석/힌트**받으며, 커뮤니티에서 함께 성장하는 서비스입니다. 웹과 **브라우저 확장** 두 클라이언트를 지원하며, GitHub Actions → GHCR → AWS EC2로 이어지는 **CI/CD 파이프라인 위에서 컨테이너로 배포**됩니다.
+codeXray는 알고리즘 문제를 풀고, 풀이·메모·노트를 남기고, **Claude 기반 AI로 내 코드를 분석/힌트**받으며, 커뮤니티에서 함께 성장하는 서비스입니다. 웹과 **브라우저 확장** 두 클라이언트를 지원하며, GitHub Actions → GHCR → 오라클 클라우드 Arm 서버로 이어지는 **CI/CD 파이프라인 위에서 컨테이너로 배포**됩니다. 서비스 주소: **https://codexray.org**
 
 ---
 
@@ -56,73 +56,84 @@ codeXray는 알고리즘 문제를 풀고, 풀이·메모·노트를 남기고, 
 - CodeMirror(다국어 코드 에디터: C++/Java/Python/JS/Go/Rust/SQL), react-markdown(AI 결과 렌더링)
 
 **Infra / DevOps**
-- Docker(멀티 스테이지 빌드), nginx(정적 서빙 + 리버스 프록시)
-- GitHub Actions(CI/CD), GHCR(이미지 레지스트리), Watchtower(자동배포)
-- AWS EC2 ×2 (애플리케이션 계층 / 데이터 계층 분리)
+- Docker(멀티 스테이지 빌드, x86 러너에서 Arm 이미지), Docker Compose, nginx(정적 서빙 + 리버스 프록시)
+- GitHub Actions(CI/CD), GHCR(이미지 레지스트리), SSH 배포 + 자동 되돌리기
+- Oracle Cloud Ampere A1(Arm) 서버 한 대, Let's Encrypt HTTPS, Cloudflare R2(DB 백업)
+- (이전) AWS EC2 ×2 — 애플리케이션 계층 / 데이터 계층 분리, Watchtower 자동배포
 
 ---
 
 ## 🏗 시스템 아키텍처
 
-애플리케이션 계층(**Main EC2**)과 데이터 계층(**DB EC2**)을 분리하고, 둘은 같은 VPC의 **사설망(private IP)** 으로만 통신합니다. 외부에는 웹(80) 포트만 열려 있습니다.
+오라클 클라우드 Arm 서버 한 대에서 Docker Compose 묶음(`/srv/codexray`)으로 돕니다. 같은 서버에 다른 앱(Bandal)이 자기 묶음으로 함께 살고, HTTPS를 푸는 **바깥 Nginx**만 같이 씁니다. 서버가 밖으로 여는 포트는 80, 443뿐입니다.
 
 ```mermaid
 flowchart LR
-    user([사용자 · 브라우저]) -->|HTTP :80| nginx
+    user([사용자 · 브라우저]) -->|HTTPS :443| edge
 
-    subgraph main[Main EC2 · 애플리케이션 계층]
-        nginx[nginx<br/>정적 서빙 + /api 프록시] -->|:8080| backend[Spring Boot]
+    subgraph server[Oracle Cloud A1 서버 한 대]
+        edge[바깥 Nginx<br/>HTTPS 종료 · 도메인별로 앱 입구 선택]
+
+        subgraph cx[codexray 묶음 · Docker Compose]
+            nginx[frontend · nginx<br/>정적 서빙 + /api 프록시] -->|:8080| backend[Spring Boot]
+            backend --> pg[(PostgreSQL)]
+            backend --> redis[(Redis)]
+            backend --> kafka[(Kafka)]
+        end
+
+        other[다른 앱 묶음<br/>Bandal]
+        edge -->|edge 네트워크| nginx
+        edge -->|edge 네트워크| other
     end
 
-    subgraph db[DB EC2 · 데이터 계층 · 사설망만 접근]
-        pg[(PostgreSQL)]
-        redis[(Redis)]
-        kafka[(Kafka)]
-    end
-
-    backend -->|private IP| pg
-    backend -->|private IP| redis
-    backend -->|private IP| kafka
     backend -.->|Claude API| anthropic([Anthropic])
 ```
 
 - **same-origin 구조**: nginx가 React 정적파일을 서빙하고 `/api` 요청만 백엔드로 프록시 → 프론트·백엔드가 동일 오리진이라 **CORS가 불필요**하고 쿠키 인증이 단순해집니다.
-- **계층 분리**: 상태를 갖는 저장소(PG/Redis/Kafka)를 별도 EC2로 격리 → Main은 stateless, 확장·교체가 쉬움.
+- **네트워크로 격리**: 바깥 Nginx와 같은 `edge` 네트워크에 붙는 건 입구(frontend) 하나뿐입니다. backend와 PG/Redis/Kafka는 `ports`가 없어 인터넷에서도, 바깥 Nginx에서도 닿지 않습니다. 저장소는 앱마다 따로 두어 한 앱의 장애나 실수(디스크, 잘못된 마이그레이션, Redis 비우기)가 다른 앱으로 번지지 않습니다.
+- **메모리 상한**: 컨테이너마다 `mem_limit`을 두고(JVM은 그 75%, Kafka 힙 512MB) 한 앱이 메모리를 다 먹어도 다른 앱이 살게 했습니다.
 - **AI 비동기**: 느린 LLM 호출을 요청-응답 흐름에서 떼어내 Kafka로 처리 → 사용자는 즉시 잡 ID를 받고 결과를 폴링.
 
 ---
 
 ## 🚀 CI/CD & 배포
 
-`git push` 한 번이면 **테스트 → 이미지 빌드 → 레지스트리 푸시 → 서버 자동 반영**까지 전 과정이 자동으로 실행됩니다.
+`master`에 merge 한 번이면 **테스트 → Arm 이미지 빌드 → 레지스트리 푸시 → 서버 배포(실패하면 자동 되돌림)** 까지 자동으로 실행됩니다.
 
 ```mermaid
 flowchart LR
-    dev([개발자]) -->|git push| gh[GitHub]
+    dev([개발자]) -->|PR merge| gh[GitHub]
     gh --> ci{{GitHub Actions}}
     ci -->|① 테스트<br/>Postgres 서비스 컨테이너| test[gradle test]
-    ci -->|② 이미지 빌드| build[backend / frontend]
-    build -->|③ push :latest| ghcr[(GHCR)]
-    wt[Watchtower · Main EC2] -->|2분마다 확인| ghcr
-    wt -->|④ 새 이미지 자동 pull + 컨테이너 교체| deploy[재배포]
+    ci -->|② Arm 이미지 빌드| build[backend / frontend]
+    build -->|push :커밋SHA| ghcr[(GHCR)]
+    ci -->|③ SSH| srv[서버 deploy.sh]
+    srv -->|배포 직전 DB 백업| r2[(Cloudflare R2)]
+    srv -->|pull :커밋SHA, healthy 대기| up[새 버전]
+    srv -.->|healthy 아니면| back[이전 SHA로 되돌림]
 ```
 
 **① CI — 빌드 & 테스트** (`.github/workflows/ci.yml`)
 - push/PR마다 `./gradlew test` 실행. 테스트 12개 중 2개(전체 컨텍스트 부팅 1 · JPA 슬라이스 1)가 실제 Postgres를 요구하므로 **Postgres 16 서비스 컨테이너**를 띄우고 `DB_URL` 등 필요한 환경변수를 주입합니다. 여러 계층을 관통하는 시나리오 테스트(`@WebMvcTest` · MockMvc · `RANDOM_PORT`)는 없습니다.
 
-**② CD — 이미지 빌드 & 푸시**
-- 테스트 통과 시에만(`needs`) backend·frontend 이미지를 **멀티 스테이지**로 빌드해 GHCR에 `:latest` + 커밋 SHA 태그로 푸시합니다.
+**② 이미지 빌드 & 푸시**
+- 테스트 통과 시에만(`needs`) backend·frontend 이미지를 **멀티 스테이지**로 빌드해 GHCR에 **커밋 SHA 태그**로 푸시합니다.
+- 서버가 Arm이라 `linux/arm64` 이미지를 만듭니다. Gradle·npm 빌드 단계는 `--platform=$BUILDPLATFORM`으로 **러너의 x86 CPU에서** 돌리고(결과물 jar·정적파일은 CPU와 무관), Arm 흉내(QEMU)는 마지막 실행 단계만 탑니다. 흉내 속에서 Gradle을 돌리면 몇 배 느려집니다.
+- 소셜 로그인 Client ID(공개값)는 Vite가 번들에 넣는 값이라 이미지 빌드 때 `build-args`로 주입합니다. secret은 백엔드에만 있습니다.
 
-**③ 자동배포 — Watchtower(pull 방식)**
-- Main EC2의 Watchtower가 GHCR을 주기적으로 확인하다가 `:latest` 다이제스트가 바뀌면 **스스로 pull 후 컨테이너를 교체**합니다.
-- 서버로 들어오는 SSH inbound 없이 **outbound만으로** 배포가 이뤄져, SSH를 운영자 IP로 잠근 상태를 유지할 수 있습니다.
+**③ 배포 — SSH + 자동 되돌리기** (`deploy/deploy.sh`)
+- GitHub Actions가 SSH로 서버에 들어가 compose 파일·스크립트·`.env`(GitHub Secrets에서 만들어 600 권한으로)를 올리고 `deploy.sh <커밋SHA>`를 실행합니다.
+- `deploy.sh`는 **배포 직전 DB를 백업**(빈 Postgres에 복구해 행 수를 비교한 뒤 R2에 업로드)하고, 새 SHA로 띄운 뒤 모든 컨테이너가 healthy가 되길 기다립니다. 안 되면 **마지막으로 성공한 SHA로 되돌리고** 워크플로를 실패로 끝냅니다.
+- 배포용 SSH는 키로만 열리고(비밀번호 로그인 차단) 배포 전용 사용자(sudo 없음)로 들어갑니다. 처음 보는 서버에는 접속하지 않도록 호스트 키를 Secrets에 고정해 둡니다.
+- 매일 새벽 DB 백업도 같은 스크립트(`deploy/backup.sh`)로 cron이 돌리고, 성공 신호가 끊기면 healthchecks.io가 메일을 보냅니다.
 
-> **왜 push(SSH) 방식이 아니라 pull(Watchtower)인가?**
-> 보안그룹에서 SSH(22)를 운영자 IP로 제한했기 때문에, 매번 IP가 바뀌는 GitHub Actions 러너가 서버로 SSH하려면 포트를 사실상 전체 개방해야 합니다. 이는 방금 세운 보안 원칙과 충돌합니다. Watchtower는 서버가 능동적으로 이미지를 가져오는 구조라 **포트를 열지 않고도** 자동배포가 가능해, 보안·비용·메모리 측면에서 이 프로젝트 규모에 가장 적합했습니다.
-
-**보안그룹(방화벽) 설계**
-- 데이터 계층 포트(5432/6379/9092)는 **보안그룹 자기 참조(self-reference)** 로만 허용 → 같은 보안그룹의 인스턴스(=Main)에서만 접근 가능, 인터넷에서 DB 직접 접근 차단.
-- 웹(80)만 공개, SSH(22)는 운영자 IP로 제한.
+> **AWS EC2 2대 → 오라클 서버 1대로 옮긴 이유 (2026-10)**
+> 처음에는 AWS EC2 두 대(애플리케이션 / 데이터 계층)에 배포하고 Watchtower로 자동배포했습니다. SSH를 운영자 IP로 잠근 보안그룹에서 IP가 매번 바뀌는 GitHub Actions 러너가 들어오려면 22번을 열어야 해서, 서버가 스스로 `:latest`를 확인해 교체하는 pull 방식을 골랐습니다.
+> EC2는 잠깐 띄워 확인한 뒤 내렸고, 계속 띄워 둘 곳으로 이미 운영 중이던 오라클 Arm 서버(다른 앱과 공유)를 골라 옮겼습니다. 옮기면서 배포를 SSH 방식으로 바꿨습니다.
+> - 이 서버는 SSH를 **키 전용**으로만 열어 IP 제한 없이도 러너가 들어올 수 있습니다.
+> - Watchtower는 Docker 소켓(=서버 root 권한)을 쥐어야 해서, 다른 앱과 같이 쓰는 서버에서는 위험이 큽니다.
+> - `:latest`는 지금 무엇이 떠 있는지 알 수 없고 되돌릴 기준도 없습니다. **SHA 태그 + 되돌리기 + 배포 전 백업**이 실제 운영에서 더 중요했습니다.
+> - 계층 분리(EC2 2대)는 서버 한 대 안에서 **Docker 네트워크 격리**(DB·Redis·Kafka에 포트 없음)로 대신했습니다.
 
 ---
 
@@ -273,7 +284,7 @@ flowchart LR
   캐시로 덮기 전에 N+1을 `@BatchSize`로 근본 해결하고(캐시 미스에도 유효), 그 위에 캐싱을 얹었습니다. 각 단계를 부하 테스트로 분리 측정([성능 최적화](#-성능-최적화) 참고). 읽기 캐시는 "빠르게"보다 **"정확하게 오래되지 않게"** 를 먼저 보고, 데이터가 바뀌는 지점(피드백→tier 재계산)을 찾아 캐시별 무효화 방식을 나눴습니다. 이미 refresh 토큰용으로 쓰던 Redis를 재사용해 인프라 추가는 없었습니다.
 
 - **배포 아키텍처의 트레이드오프**
-  비용을 이유로 ALB/사설 서브넷 없이 public 서브넷 + 보안그룹만으로 격리했고, 데이터 계층을 별도 EC2로 분리했습니다. 소규모 인스턴스의 메모리 한계(예: Kafka 기본 힙)를 고려해 JVM 힙을 제한하고 swap을 구성하는 등 **제약 안에서의 안정화**를 진행했습니다.
+  처음 AWS에서는 비용을 이유로 ALB/사설 서브넷 없이 public 서브넷 + 보안그룹만으로 격리하고 데이터 계층을 별도 EC2로 분리했습니다. 지금은 다른 앱과 함께 쓰는 Arm 서버 한 대라, 격리를 Docker 네트워크(저장소에 포트 없음, 바깥 Nginx는 입구만 앎)와 컨테이너별 메모리 상한으로 합니다. 소규모 서버의 메모리 한계(예: Kafka 기본 힙 1GB)를 고려해 JVM·Kafka 힙을 제한하는 등 **제약 안에서의 안정화**를 진행했습니다([CI/CD & 배포](#-cicd--배포)의 이전 이유 참고).
 
 ---
 
@@ -283,9 +294,8 @@ flowchart LR
 
 **1) 데이터 인프라 기동 (Postgres / Redis / Kafka)**
 ```bash
-cd deploy/db
-cp .env.example .env   # 값 채우기 (DB_PRIVATE_IP은 localhost 로컬용으로는 127.0.0.1)
-docker compose up -d
+cd backend
+docker compose up -d   # 로컬 개발용(backend/docker-compose.yml). 포트 5432/6379/9092
 ```
 
 **2) 백엔드**
@@ -322,9 +332,11 @@ codeXray/
 │   ├── src/
 │   ├── nginx.conf           # 정적 서빙 + /api 리버스 프록시
 │   └── Dockerfile
-├── deploy/
-│   ├── db/                  # DB EC2용 compose (pg + redis + kafka)
-│   └── main/                # Main EC2용 compose (backend + nginx + watchtower)
+├── deploy/                  # 서버(/srv/codexray)에 올라가는 파일
+│   ├── compose.yml          # frontend + backend + pg + redis + kafka 한 묶음
+│   ├── deploy.sh            # SHA 태그로 띄우고, 안 되면 이전 SHA로 되돌림
+│   ├── backup.sh            # 덤프 → 복구 검증 → R2 업로드 (매일 + 배포 직전)
+│   └── .env.example
 └── .github/workflows/
-    └── ci.yml               # CI(test) + CD(build & push to GHCR)
+    └── ci.yml               # CI(test) + CD(Arm 이미지 → GHCR → SSH 배포)
 ```

@@ -6,6 +6,12 @@ spring:
   config:
     import: optional:file:.env[.properties]
 
+  # 사용자 저장소(UserDetailsService)를 따로 두지 않으면 Spring Security 가 "user" 기본 계정을 메모리에 만들고
+  # 그 비밀번호를 시작 로그에 찍는다("Using generated security password"). 로그인은 JWT 라 이 계정을 쓸 곳이 없다.
+  # 운영 로그에 비밀번호가 남지 않게 이 자동 설정을 끈다
+  autoconfigure:
+    exclude: org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration
+
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
