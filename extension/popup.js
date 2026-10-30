@@ -1,5 +1,5 @@
 // 팝업: codeXray 로그인 → accessToken을 chrome.storage에 저장.
-// 확장 페이지도 host_permissions 덕에 localhost API를 CORS 없이 호출 가능.
+// 확장 페이지도 host_permissions 덕에 API를 CORS 없이 호출 가능.
 const API = CODEXRAY_API // config.js (popup.html 에서 먼저 로드)
 
 const $ = (id) => document.getElementById(id)
@@ -52,7 +52,7 @@ $('loginForm').addEventListener('submit', async (e) => {
     setMsg('연결됐어요!', 'ok')
     render()
   } catch (err) {
-    setMsg('네트워크 오류: 백엔드(localhost:8080)가 실행 중인지 확인하세요.', 'err')
+    setMsg(`네트워크 오류: ${API} 에 연결하지 못했어요.`, 'err')
   } finally {
     $('submit').disabled = false
   }

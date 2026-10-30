@@ -3,7 +3,7 @@
 //  1) MAIN world 주입으로 에디터 코드·언어·URL·제목 추출
 //  2) URL로 문제 매칭(/problems/lookup, 공개)
 //  3) 풀이 저장(POST /solutions) — Bearer, 401이면 refresh 후 1회 재시도
-// 확장은 host_permissions 덕에 background에서 CORS 없이 localhost 호출 가능.
+// 확장은 host_permissions 덕에 background에서 CORS 없이 API 호출 가능.
 // ─────────────────────────────────────────────────────────────
 importScripts('config.js') // CODEXRAY_API 전역 로드
 const API = CODEXRAY_API

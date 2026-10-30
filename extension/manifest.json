@@ -6,7 +6,7 @@
   "permissions": ["storage", "scripting"],
   "host_permissions": [
     "https://school.programmers.co.kr/*",
-    "http://localhost:8080/*"
+    "https://codexray.org/*"
   ],
   "background": {
     "service_worker": "background.js"

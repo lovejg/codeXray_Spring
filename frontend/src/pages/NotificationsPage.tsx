@@ -36,7 +36,6 @@ export default function NotificationsPage() {
 
   useEffect(() => {
     void load(null)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   function refreshBadge() {

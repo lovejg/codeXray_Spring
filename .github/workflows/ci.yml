@@ -37,6 +37,16 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+      # 로그인 토큰 저장소(RefreshTokenStore) 테스트용
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       # 1) 저장소 코드 체크아웃
