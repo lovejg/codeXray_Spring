@@ -1,5 +1,6 @@
 package com.codeXray.backend.user.service;
 
+import com.codeXray.backend.auth.refresh.RefreshTokenStore;
 import com.codeXray.backend.common.exception.BusinessException;
 import com.codeXray.backend.common.exception.ErrorCode;
 import com.codeXray.backend.user.entity.AuthProvider;
@@ -18,12 +19,13 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-// 프로필(닉네임·비밀번호·탈퇴) 규칙. DB 없이 리포지토리를 가짜로 두고 서비스 판단만 본다
+// 프로필(닉네임·비밀번호·탈퇴) 규칙. DB, Redis 없이 리포지토리와 토큰 저장소를 가짜로 두고 서비스 판단만 본다
 class UserServiceTest {
 
     private final UserRepository userRepository = mock(UserRepository.class);
     private final PasswordEncoder encoder = new BCryptPasswordEncoder();
-    private final UserService service = new UserService(userRepository, encoder);
+    private final RefreshTokenStore refreshTokenStore = mock(RefreshTokenStore.class);
+    private final UserService service = new UserService(userRepository, encoder, refreshTokenStore);
 
     private User given(AuthProvider provider, String rawPassword) {
         User user = User.builder()
@@ -89,22 +91,39 @@ class UserServiceTest {
     }
 
     @Test
-    @DisplayName("현재 비밀번호가 틀리면 거절한다")
+    @DisplayName("비밀번호를 바꾸면 모든 기기의 로그인을 끊고, 지금 기기에 쓸 새 토큰을 발급한다")
+    void passwordChangeRevokesOtherSessions() {
+        given(AuthProvider.LOCAL, "password1");
+        when(refreshTokenStore.issue(1L)).thenReturn("new-token");
+
+        String token = service.updatePassword(1L, "password1", "newpassword1");
+
+        // 순서가 거꾸로면 방금 발급한 토큰까지 지워진다
+        var order = inOrder(refreshTokenStore);
+        order.verify(refreshTokenStore).deleteAllOf(1L);
+        order.verify(refreshTokenStore).issue(1L);
+        assertThat(token).isEqualTo("new-token");
+    }
+
+    @Test
+    @DisplayName("현재 비밀번호가 틀리면 거절하고, 로그인도 끊지 않는다")
     void wrongCurrentPassword() {
         given(AuthProvider.LOCAL, "password1");
 
         assertThatThrownBy(() -> service.updatePassword(1L, "wrong-password", "newpassword1"))
                 .extracting(e -> ((BusinessException) e).getErrorCode())
                 .isEqualTo(ErrorCode.PASSWORD_MISMATCH);
+        verifyNoInteractions(refreshTokenStore);
     }
 
     @Test
-    @DisplayName("탈퇴하면 그 유저를 지운다")
+    @DisplayName("탈퇴하면 그 유저를 지우고 모든 기기의 로그인 토큰도 지운다")
     void deleteAccount() {
         User user = given(AuthProvider.LOCAL, "password1");
 
         service.deleteAccount(1L);
 
         verify(userRepository).delete(user);
+        verify(refreshTokenStore).deleteAllOf(1L);
     }
 }
