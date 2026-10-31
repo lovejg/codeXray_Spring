@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { MessageSquare, Plus, Lock } from 'lucide-react'
 import { communityApi } from '../api/community'
 import { COMMUNITY_POST_TYPES } from '../types'
@@ -11,14 +11,17 @@ import Spinner from '../components/common/Spinner'
 import EmptyState from '../components/common/EmptyState'
 import PostTypeBadge from '../components/common/PostTypeBadge'
 import AuthorName from '../components/common/AuthorName'
+import Pager from '../components/common/Pager'
 
 export default function CommunityPage() {
   const user = useAuthStore((s) => s.user)
   const [sort, setSort] = useState<'recent' | 'votes'>('recent')
+  const [page, setPage] = useState(0)
 
   const { data, isLoading } = useQuery({
-    queryKey: ['community', 'list', sort],
-    queryFn: () => communityApi.listPosts({ types: COMMUNITY_POST_TYPES.join(','), sort }),
+    queryKey: ['community', 'list', sort, page],
+    queryFn: () => communityApi.listPosts({ types: COMMUNITY_POST_TYPES.join(','), sort, page }),
+    placeholderData: keepPreviousData,
   })
 
   return (
@@ -28,7 +31,7 @@ export default function CommunityPage() {
           {(['recent', 'votes'] as const).map((s) => (
             <button
               key={s}
-              onClick={() => setSort(s)}
+              onClick={() => { setSort(s); setPage(0) }}
               className={`font-mono px-3.5 py-2 transition ${sort === s ? 'bg-teal-400/10 text-teal-300' : 'text-slate-400 hover:bg-white/5'}`}
             >
               {s === 'recent' ? '최신순' : '추천순'}
@@ -43,10 +46,10 @@ export default function CommunityPage() {
       </PageHeader>
 
       {isLoading && <Spinner label="불러오는 중…" />}
-      {data && data.length === 0 && <EmptyState message="아직 게시글이 없습니다" hint="첫 글을 남겨보세요." />}
+      {data && data.total === 0 && <EmptyState message="아직 게시글이 없습니다" hint="첫 글을 남겨보세요." />}
 
       <div className="glass-card divide-y divide-white/5 overflow-hidden">
-        {data?.map((p) => (
+        {data?.items.map((p) => (
           <Link key={p.id} to={`/community/${p.id}`} className="flex items-center gap-3 px-5 py-3.5 transition hover:bg-white/5">
             <div className="flex w-10 shrink-0 flex-col items-center">
               <span className={`text-sm font-bold ${p.votes.score > 0 ? 'text-emerald-400' : p.votes.score < 0 ? 'text-rose-400' : 'text-slate-500'}`}>
@@ -73,6 +76,8 @@ export default function CommunityPage() {
           </Link>
         ))}
       </div>
+
+      {data && <Pager page={page} totalPages={data.totalPages} onChange={setPage} />}
     </div>
   )
 }

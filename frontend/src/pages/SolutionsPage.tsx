@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Star, Pencil, Trash2, Plus, ChevronRight } from 'lucide-react'
 import { solutionsApi } from '../api/solutions'
 import type { Solution } from '../types'
@@ -9,14 +9,17 @@ import PageHeader from '../components/common/PageHeader'
 import Spinner from '../components/common/Spinner'
 import EmptyState from '../components/common/EmptyState'
 import TierBadge from '../components/common/TierBadge'
+import Pager from '../components/common/Pager'
 
 export default function SolutionsPage() {
   const [starredOnly, setStarredOnly] = useState(false)
+  const [page, setPage] = useState(0)
   const qc = useQueryClient()
 
   const { data, isLoading } = useQuery({
-    queryKey: ['solutions', { starredOnly }],
-    queryFn: () => solutionsApi.list(starredOnly ? true : undefined),
+    queryKey: ['solutions', { starredOnly, page }],
+    queryFn: () => solutionsApi.list({ starred: starredOnly ? true : undefined, page }),
+    placeholderData: keepPreviousData,
   })
 
   const star = useMutation({
@@ -32,7 +35,7 @@ export default function SolutionsPage() {
     <div>
       <PageHeader title="내 풀이" subtitle="등록한 풀이와 메모, 별표한 문제를 모아봅니다.">
         <label className="flex cursor-pointer items-center gap-1.5 text-sm text-slate-400">
-          <input type="checkbox" checked={starredOnly} onChange={(e) => setStarredOnly(e.target.checked)} className="accent-teal-500" />
+          <input type="checkbox" checked={starredOnly} onChange={(e) => { setStarredOnly(e.target.checked); setPage(0) }} className="accent-teal-500" />
           별표만
         </label>
         <Link to="/solutions/new" className="btn-primary">
@@ -42,12 +45,12 @@ export default function SolutionsPage() {
 
       {isLoading && <Spinner label="불러오는 중…" />}
 
-      {data && data.length === 0 && (
+      {data && data.total === 0 && (
         <EmptyState message="아직 등록한 풀이가 없습니다" hint="문제를 풀고 풀이를 등록해 보세요." />
       )}
 
       <div className="space-y-4">
-        {data?.map((s) => (
+        {data?.items.map((s) => (
           <SolutionCard
             key={s.id}
             s={s}
@@ -56,6 +59,8 @@ export default function SolutionsPage() {
           />
         ))}
       </div>
+
+      {data && <Pager page={page} totalPages={data.totalPages} onChange={setPage} />}
     </div>
   )
 }

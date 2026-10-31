@@ -1,5 +1,5 @@
 import client from './client'
-import type { Memo, Solution } from '../types'
+import type { Memo, PageResponse, Solution } from '../types'
 
 export interface UpsertMemoBody {
   wrongReason?: string
@@ -9,10 +9,17 @@ export interface UpsertMemoBody {
 }
 
 export const solutionsApi = {
-  list: (starred?: boolean) =>
+  // 내 풀이 목록(페이지). page 는 0부터, size 는 서버에서 최대 50
+  list: (params: { starred?: boolean; page?: number; size?: number } = {}) =>
     client
-      .get<Solution[]>('/solutions', { params: starred === undefined ? {} : { starred } })
+      .get<PageResponse<Solution>>('/solutions', { params })
       .then((r) => r.data),
+
+  // 이 문제에 대한 내 풀이. 아직 없으면 서버가 204 → null
+  byProblem: (problemId: number) =>
+    client
+      .get<Solution | ''>(`/solutions/by-problem/${problemId}`)
+      .then((r) => (r.status === 204 || !r.data ? null : r.data)),
 
   get: (id: number) => client.get<Solution>(`/solutions/${id}`).then((r) => r.data),
 

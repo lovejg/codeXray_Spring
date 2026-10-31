@@ -12,13 +12,13 @@ export default function FeedbackWidget({ problemId }: { problemId: number }) {
   const qc = useQueryClient()
   const [error, setError] = useState('')
 
-  // 내 풀이 목록에서 이 문제를 푼 적이 있는지 확인(게이팅용)
-  const { data: mySolutions, isLoading: loadingSolutions } = useQuery({
-    queryKey: ['solutions', 'mine-all'],
-    queryFn: () => solutionsApi.list(),
+  // 이 문제에 대한 내 풀이가 있는지(피드백은 푼 문제에만). 문제 상세 화면과 같은 캐시 키라 요청은 한 번
+  const { data: mySolution, isLoading: loadingSolutions } = useQuery({
+    queryKey: ['solutions', 'by-problem', problemId],
+    queryFn: () => solutionsApi.byProblem(problemId),
     enabled: !!user,
   })
-  const hasSolution = !!mySolutions?.some((s) => s.problem.id === problemId)
+  const hasSolution = !!mySolution
 
   const { data: mine } = useQuery({
     queryKey: ['feedback', problemId],

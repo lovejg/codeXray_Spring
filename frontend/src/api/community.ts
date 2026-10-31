@@ -1,6 +1,7 @@
 import client from './client'
 import type {
   Comment,
+  PageResponse,
   PostDetail,
   PostSummary,
   PostType,
@@ -17,6 +18,8 @@ export interface PostListQuery {
   status?: SuggestionStatus
   authorId?: number
   sort?: 'recent' | 'votes'
+  page?: number // 0부터
+  size?: number // 서버에서 최대 50
 }
 
 export interface CreatePostBody {
@@ -35,7 +38,7 @@ export interface UpdatePostBody {
 
 export const communityApi = {
   listPosts: (q: PostListQuery) =>
-    client.get<PostSummary[]>('/community/posts', { params: q }).then((r) => r.data),
+    client.get<PageResponse<PostSummary>>('/community/posts', { params: q }).then((r) => r.data),
 
   getPost: (id: number) =>
     client.get<PostDetail>(`/community/posts/${id}`).then((r) => r.data),

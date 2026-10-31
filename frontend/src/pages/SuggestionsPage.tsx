@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { Plus } from 'lucide-react'
 import { communityApi } from '../api/community'
 import { SUGGESTION_POST_TYPES, STATUS_LABEL, type SuggestionStatus } from '../types'
@@ -12,24 +12,28 @@ import EmptyState from '../components/common/EmptyState'
 import PostTypeBadge from '../components/common/PostTypeBadge'
 import StatusBadge from '../components/common/StatusBadge'
 import AuthorName from '../components/common/AuthorName'
+import Pager from '../components/common/Pager'
 
 export default function SuggestionsPage() {
   const user = useAuthStore((s) => s.user)
   const [status, setStatus] = useState<SuggestionStatus | ''>('')
+  const [page, setPage] = useState(0)
 
   const { data, isLoading } = useQuery({
-    queryKey: ['suggestions', 'list', status],
+    queryKey: ['suggestions', 'list', status, page],
     queryFn: () => communityApi.listPosts({
       types: SUGGESTION_POST_TYPES.join(','),
       status: status || undefined,
       sort: 'recent',
+      page,
     }),
+    placeholderData: keepPreviousData,
   })
 
   return (
     <div>
       <PageHeader title="건의사항" subtitle="개선 아이디어나 버그를 제보하면 관리자가 확인합니다.">
-        <select value={status} onChange={(e) => setStatus(e.target.value as SuggestionStatus | '')} className="select-field">
+        <select value={status} onChange={(e) => { setStatus(e.target.value as SuggestionStatus | ''); setPage(0) }} className="select-field">
           <option value="">전체 상태</option>
           <option value="IN_PROGRESS">{STATUS_LABEL.IN_PROGRESS}</option>
           <option value="RESOLVED">{STATUS_LABEL.RESOLVED}</option>
@@ -42,10 +46,10 @@ export default function SuggestionsPage() {
       </PageHeader>
 
       {isLoading && <Spinner label="불러오는 중…" />}
-      {data && data.length === 0 && <EmptyState message="건의사항이 없습니다" />}
+      {data && data.total === 0 && <EmptyState message="건의사항이 없습니다" />}
 
       <div className="glass-card divide-y divide-white/5 overflow-hidden">
-        {data?.map((p) => (
+        {data?.items.map((p) => (
           <Link key={p.id} to={`/suggestions/${p.id}`} className="flex items-center gap-3 px-5 py-3.5 transition hover:bg-white/5">
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
@@ -62,6 +66,8 @@ export default function SuggestionsPage() {
           </Link>
         ))}
       </div>
+
+      {data && <Pager page={page} totalPages={data.totalPages} onChange={setPage} />}
     </div>
   )
 }
