@@ -138,7 +138,8 @@ export default function VerifyEmailPage() {
         <button onClick={resend} className={primaryBtn}>
           인증 메일 재발송
         </button>
-        {resent && <p className="text-sm text-emerald-400">재발송했습니다. 메일함을 확인해 주세요.</p>}
+        {/* 서버는 가입 여부를 알려 주지 않는다(이메일 존재 여부 노출 방지). 그래서 문구도 조건형으로 쓴다 */}
+        {resent && <p className="text-sm text-emerald-400">인증이 필요한 계정이면 메일을 보냈습니다. 메일함을 확인해 주세요. (재발송은 1분에 한 번)</p>}
         {resendError && <p className="text-sm text-rose-400">{resendError}</p>}
       </div>
 

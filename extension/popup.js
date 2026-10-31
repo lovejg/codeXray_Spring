@@ -59,6 +59,18 @@ $('loginForm').addEventListener('submit', async (e) => {
 })
 
 $('logout').addEventListener('click', async () => {
+  // 서버의 refresh 토큰도 지운다. 저장소만 비우면 토큰은 서버에 14일 동안 살아 있다(유출됐다면 계속 쓸 수 있다)
+  const { refreshToken } = await chrome.storage.local.get('refreshToken')
+  if (refreshToken) {
+    try {
+      await fetch(`${API}/auth/logout`, {
+        method: 'POST',
+        headers: { 'X-Refresh-Token': refreshToken, 'X-Client': 'extension' },
+      })
+    } catch {
+      // 네트워크가 안 돼도 이 기기에서는 로그아웃한다. 서버 토큰은 만료(14일)로 사라진다
+    }
+  }
   await chrome.storage.local.remove(['token', 'refreshToken', 'nickname'])
   setMsg('로그아웃됐어요.')
   render()

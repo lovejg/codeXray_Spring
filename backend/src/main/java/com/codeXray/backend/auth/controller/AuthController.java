@@ -70,9 +70,13 @@ public class AuthController {
         return ResponseEntity.ok(LoginResponse.web(tokenPair.accessToken()));
     }
 
+    // refresh 와 같은 규칙: 웹=쿠키, 확장=X-Refresh-Token 헤더. 예전에는 쿠키만 받아서
+    // 확장의 로그아웃이 서버의 refresh 토큰을 지우지 못했다(14일 동안 살아 있음)
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@CookieValue(name = RefreshCookieUtil.COOKIE_NAME, required = false) String refreshToken,
+    public ResponseEntity<Void> logout(@CookieValue(name = RefreshCookieUtil.COOKIE_NAME, required = false) String cookieToken,
+                                       @RequestHeader(value = "X-Refresh-Token", required = false) String headerToken,
                                        HttpServletResponse response) {
+        String refreshToken = (headerToken != null) ? headerToken : cookieToken;
         if(refreshToken != null) {
             authService.logout(refreshToken);
         }
