@@ -24,13 +24,13 @@ export default function ProblemDetailPage() {
     enabled: Number.isFinite(problemId),
   })
 
-  // 내 풀이 목록(FeedbackWidget과 같은 캐시키 → 중복 요청 없음). 이 문제 풀이 존재 여부로 CTA 결정.
-  const { data: mySolutions } = useQuery({
-    queryKey: ['solutions', 'mine-all'],
-    queryFn: () => solutionsApi.list(),
-    enabled: !!user,
+  // 이 문제에 대한 내 풀이(FeedbackWidget과 같은 캐시키 → 중복 요청 없음). 있으면 "내 풀이 보기", 없으면 "풀이 등록".
+  // 예전에는 이것 하나를 알려고 내 풀이 전체를 받아 와서 찾았다
+  const { data: mySolution = null } = useQuery({
+    queryKey: ['solutions', 'by-problem', problemId],
+    queryFn: () => solutionsApi.byProblem(problemId),
+    enabled: !!user && Number.isFinite(problemId),
   })
-  const mySolution = mySolutions?.find((s) => s.problem.id === problemId) ?? null
 
   if (isLoading) return <Spinner label="불러오는 중…" />
   if (isError || !problem) return <EmptyState tone="error" message="문제를 찾을 수 없습니다." />

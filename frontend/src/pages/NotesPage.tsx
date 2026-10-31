@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { notesApi } from '../api/notes'
 import { NOTE_TYPE_LABEL, type Note, type NoteType } from '../types'
@@ -12,6 +12,7 @@ import EmptyState from '../components/common/EmptyState'
 import NoteTypeBadge from '../components/common/NoteTypeBadge'
 import TagBadge from '../components/common/TagBadge'
 import NoteFormModal from './NoteFormModal'
+import Pager from '../components/common/Pager'
 
 const NOTE_TYPES = Object.keys(NOTE_TYPE_LABEL) as NoteType[]
 
@@ -22,11 +23,19 @@ export default function NotesPage() {
   const [search, setSearch] = useState('')
   const [editing, setEditing] = useState<Note | null>(null)
   const [creating, setCreating] = useState(false)
+  const [page, setPage] = useState(0)
 
   const { data, isLoading } = useQuery({
-    queryKey: ['notes', { typeFilter, search }],
-    queryFn: () => notesApi.list(typeFilter || undefined, search || undefined),
+    queryKey: ['notes', { typeFilter, search, page }],
+    queryFn: () => notesApi.list({ type: typeFilter || undefined, search: search || undefined, page }),
+    placeholderData: keepPreviousData,
   })
+
+  // 필터·검색이 바뀌면 1페이지부터
+  function applySearch(value: string) {
+    setSearch(value)
+    setPage(0)
+  }
 
   const remove = useMutation({
     mutationFn: (id: number) => notesApi.remove(id),
@@ -42,7 +51,7 @@ export default function NotesPage() {
       </PageHeader>
 
       <div className="mb-5 flex flex-wrap items-center gap-2">
-        <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value as NoteType | '')} className="select-field">
+        <select value={typeFilter} onChange={(e) => { setTypeFilter(e.target.value as NoteType | ''); setPage(0) }} className="select-field">
           <option value="">전체 유형</option>
           {NOTE_TYPES.map((t) => <option key={t} value={t}>{NOTE_TYPE_LABEL[t]}</option>)}
         </select>
@@ -51,19 +60,19 @@ export default function NotesPage() {
           <input
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && setSearch(keyword.trim())}
+            onKeyDown={(e) => e.key === 'Enter' && applySearch(keyword.trim())}
             placeholder="제목/본문 검색"
             className="w-52 rounded-l-md border border-slate-800 bg-slate-950 px-3 py-2 font-mono text-sm text-white outline-none transition focus:border-teal-400/60"
           />
-          <button onClick={() => setSearch(keyword.trim())} className="rounded-r-md border border-l-0 border-slate-800 bg-slate-900/50 px-3 font-mono text-sm text-slate-300 transition hover:text-teal-300">검색</button>
+          <button onClick={() => applySearch(keyword.trim())}className="rounded-r-md border border-l-0 border-slate-800 bg-slate-900/50 px-3 font-mono text-sm text-slate-300 transition hover:text-teal-300">검색</button>
         </div>
       </div>
 
       {isLoading && <Spinner label="불러오는 중…" />}
-      {data && data.length === 0 && <EmptyState message="노트가 없습니다" hint="문제를 풀고 배운 걸 노트로 남겨보세요." />}
+      {data && data.total === 0 && <EmptyState message="노트가 없습니다" hint="문제를 풀고 배운 걸 노트로 남겨보세요." />}
 
       <div className="grid gap-3 sm:grid-cols-2">
-        {data?.map((n) => (
+        {data?.items.map((n) => (
           <div key={n.id} className="glass-card p-5 transition hover:-translate-y-0.5 hover:border-teal-400/30 hover:bg-white/[0.07]">
             <div className="flex items-center gap-2">
               <NoteTypeBadge type={n.type} />
@@ -89,6 +98,8 @@ export default function NotesPage() {
           </div>
         ))}
       </div>
+
+      {data && <Pager page={page} totalPages={data.totalPages} onChange={setPage} />}
 
       {(creating || editing) && (
         <NoteFormModal

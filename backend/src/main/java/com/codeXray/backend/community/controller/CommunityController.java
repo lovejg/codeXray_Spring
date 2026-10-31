@@ -1,5 +1,7 @@
 package com.codeXray.backend.community.controller;
 
+import com.codeXray.backend.common.dto.PageRequests;
+import com.codeXray.backend.common.dto.PageResponse;
 import com.codeXray.backend.community.dto.*;
 import com.codeXray.backend.community.entity.PostType;
 import com.codeXray.backend.community.entity.ReportStatus;
@@ -27,18 +29,22 @@ public class CommunityController {
     private final CommunityService communityService;
 
     // 목록: 비로그인도 조회 가능(공개글만). 토큰 있으면 내 비공개글/숨김글도 보임.
+    // 로그인 없이 열린 API 라 페이지를 반드시 나눈다(size 최대 50). 예전에는 보이는 글 전부를 한 번에 돌려줬다
     @GetMapping("/posts")
-    public List<PostSummaryResponse> findAll(
+    public PageResponse<PostSummaryResponse> findPage(
             Authentication auth,
             @RequestParam(required = false) PostType type,
             @RequestParam(required = false) String types,   // CSV
             @RequestParam(required = false) Long problemId,
             @RequestParam(required = false) SuggestionStatus status,
             @RequestParam(required = false) Long authorId,
-            @RequestParam(required = false) String sort   // recent(기본) | votes
+            @RequestParam(required = false) String sort,   // recent(기본) | votes
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
     ) {
-        return communityService.findAllPosts(
-                userId(auth), isAdmin(auth), parseTypes(type, types), problemId, status, authorId, sort);
+        return communityService.findPostPage(
+                userId(auth), isAdmin(auth), parseTypes(type, types), problemId, status, authorId, sort,
+                PageRequests.of(page, size));
     }
 
     @GetMapping("/posts/{id}")

@@ -13,6 +13,7 @@ import TierBadge from '../components/common/TierBadge'
 import LevelBadge from '../components/common/LevelBadge'
 import SourceBadge from '../components/common/SourceBadge'
 import TagBadge from '../components/common/TagBadge'
+import Pager from '../components/common/Pager'
 
 const PAGE_SIZE = 20
 const SORTS = [
@@ -175,14 +176,7 @@ export default function ProblemsPage() {
             </table>
           </div>
 
-          {/* 페이지네이션 */}
-          <div className="mt-5 flex items-center justify-center gap-2 text-sm">
-            <button disabled={page === 0} onClick={() => setPage((p) => p - 1)} className={pageBtn}>이전</button>
-            <span className="px-1 text-slate-400">
-              {data.totalPages === 0 ? 0 : page + 1} / {data.totalPages}
-            </span>
-            <button disabled={page + 1 >= data.totalPages} onClick={() => setPage((p) => p + 1)} className={pageBtn}>다음</button>
-          </div>
+          <Pager page={page} totalPages={data.totalPages} onChange={setPage} alwaysShow />
         </>
       )}
     </div>
@@ -191,5 +185,3 @@ export default function ProblemsPage() {
 
 const selectCls =
   'rounded-md border border-slate-800 bg-slate-950 px-3 py-2 font-mono text-sm text-slate-200 outline-none transition focus:border-teal-400/60'
-const pageBtn =
-  'rounded-md border border-slate-800 bg-slate-900/50 px-4 py-2 font-mono text-sm text-slate-300 transition hover:border-teal-400/40 hover:text-teal-300 disabled:cursor-not-allowed disabled:opacity-40'

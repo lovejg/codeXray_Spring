@@ -1,5 +1,7 @@
 package com.codeXray.backend.solution.controller;
 
+import com.codeXray.backend.common.dto.PageRequests;
+import com.codeXray.backend.common.dto.PageResponse;
 import com.codeXray.backend.solution.dto.CreateSolutionRequest;
 import com.codeXray.backend.solution.dto.MemoResponse;
 import com.codeXray.backend.solution.dto.SolutionResponse;
@@ -22,11 +24,22 @@ public class SolutionController {
 
     private final SolutionService solutionService;
 
-    // GET /api/solutions?starred=true  — 내 풀이 목록 (starred 생략 시 전체)
+    // GET /api/solutions?starred=true&page=0&size=20 — 내 풀이 목록 (starred 생략 시 전체, size 최대 50)
     @GetMapping
-    public List<SolutionResponse> findMyAll(@AuthenticationPrincipal Long userId,
-                                            @RequestParam(required = false) Boolean starred) {
-        return solutionService.findMyAll(userId, starred);
+    public PageResponse<SolutionResponse> findMyPage(@AuthenticationPrincipal Long userId,
+                                                     @RequestParam(required = false) Boolean starred,
+                                                     @RequestParam(required = false) Integer page,
+                                                     @RequestParam(required = false) Integer size) {
+        return solutionService.findMyPage(userId, starred, PageRequests.of(page, size));
+    }
+
+    // GET /api/solutions/by-problem/{problemId} — 이 문제에 대한 내 풀이. 아직 없으면 204
+    @GetMapping("/by-problem/{problemId}")
+    public ResponseEntity<SolutionResponse> findMineByProblem(@AuthenticationPrincipal Long userId,
+                                                              @PathVariable Long problemId) {
+        return solutionService.findMineByProblem(userId, problemId)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.noContent().build());
     }
 
     // GET /api/solutions/{id} — 내 풀이 단건 (메모 포함)

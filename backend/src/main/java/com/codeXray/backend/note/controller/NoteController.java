@@ -1,5 +1,7 @@
 package com.codeXray.backend.note.controller;
 
+import com.codeXray.backend.common.dto.PageRequests;
+import com.codeXray.backend.common.dto.PageResponse;
 import com.codeXray.backend.note.dto.CreateNoteRequest;
 import com.codeXray.backend.note.dto.NoteResponse;
 import com.codeXray.backend.note.dto.UpdateNoteRequest;
@@ -21,14 +23,16 @@ public class NoteController {
 
     private final NoteService noteService;
 
-    // 내 노트 목록 (type / search 필터)
+    // 내 노트 목록 (type / search 필터, page/size 페이지 — size 최대 50)
     @GetMapping
-    public List<NoteResponse> findMyAll(
+    public PageResponse<NoteResponse> findMyPage(
             @AuthenticationPrincipal Long userId,
             @RequestParam(required = false) NoteType type,
-            @RequestParam(required = false) String search
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
     ) {
-        return noteService.findMyAll(userId, type, search);
+        return noteService.findMyPage(userId, type, search, PageRequests.of(page, size));
     }
 
     @GetMapping("/{id}")

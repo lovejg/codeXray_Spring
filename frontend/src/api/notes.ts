@@ -1,5 +1,5 @@
 import client from './client'
-import type { Note, NoteType } from '../types'
+import type { Note, NoteType, PageResponse } from '../types'
 
 export interface NoteBody {
   type: NoteType
@@ -10,9 +10,10 @@ export interface NoteBody {
 }
 
 export const notesApi = {
-  list: (type?: NoteType, search?: string) =>
+  // 내 노트 목록(페이지). page 는 0부터
+  list: (params: { type?: NoteType; search?: string; page?: number; size?: number } = {}) =>
     client
-      .get<Note[]>('/notes', { params: { type, search } })
+      .get<PageResponse<Note>>('/notes', { params })
       .then((r) => r.data),
 
   get: (id: number) => client.get<Note>(`/notes/${id}`).then((r) => r.data),
