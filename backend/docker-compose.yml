@@ -4,7 +4,8 @@ services:
     container_name: codexray-db
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: "0813"
+      # 비밀번호를 파일에 적지 않는다. docker compose 가 같은 폴더의 .env(DB_PASSWORD)를 읽는다
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?backend/.env 에 DB_PASSWORD 가 없다}
       POSTGRES_DB: codexray
     ports:
       - "5432:5432"
