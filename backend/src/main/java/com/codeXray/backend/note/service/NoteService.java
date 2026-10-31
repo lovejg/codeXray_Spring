@@ -1,5 +1,6 @@
 package com.codeXray.backend.note.service;
 
+import com.codeXray.backend.common.dto.PageResponse;
 import com.codeXray.backend.common.exception.BusinessException;
 import com.codeXray.backend.common.exception.ErrorCode;
 import com.codeXray.backend.note.dto.NoteResponse;
@@ -7,6 +8,7 @@ import com.codeXray.backend.note.entity.Note;
 import com.codeXray.backend.note.entity.NoteType;
 import com.codeXray.backend.note.repository.NoteRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,10 +21,9 @@ public class NoteService {
 
     private final NoteRepository noteRepository;
 
-    public List<NoteResponse> findMyAll(Long userId, NoteType type, String search) {
-        return noteRepository.search(userId, type, search).stream()
-                .map(NoteResponse::from)
-                .toList();
+    // 내 노트 목록(페이지). 태그는 Note.tags 의 @BatchSize 로 페이지 전체를 한 번에 읽는다
+    public PageResponse<NoteResponse> findMyPage(Long userId, NoteType type, String search, Pageable pageable) {
+        return PageResponse.from(noteRepository.search(userId, type, search, pageable).map(NoteResponse::from));
     }
 
     public NoteResponse findOne(Long id, Long userId) {

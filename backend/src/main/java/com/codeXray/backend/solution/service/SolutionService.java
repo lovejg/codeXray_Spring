@@ -13,13 +13,17 @@ import com.codeXray.backend.solution.entity.Memo;
 import com.codeXray.backend.solution.entity.Solution;
 import com.codeXray.backend.solution.repository.MemoRepository;
 import com.codeXray.backend.solution.repository.SolutionRepository;
+import com.codeXray.backend.common.dto.PageResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -31,12 +35,17 @@ public class SolutionService {
     private final ProblemRepository problemRepository;
     private final NotificationService notificationService;
 
-    // 내 풀이 전체 조회
-    public List<SolutionResponse> findMyAll(Long userId, Boolean starred) {
-        List<Solution> list = (starred == null)
-                ? solutionRepository.findByUserIdOrderByUpdatedAtDesc(userId)
-                : solutionRepository.findByUserIdAndStarredOrderByUpdatedAtDesc(userId, starred);
-        return list.stream().map(SolutionResponse::from).toList();
+    // 내 풀이 목록(페이지). starred 가 null 이면 전체
+    public PageResponse<SolutionResponse> findMyPage(Long userId, Boolean starred, Pageable pageable) {
+        Page<Solution> page = (starred == null)
+                ? solutionRepository.findPageByUserId(userId, pageable)
+                : solutionRepository.findPageByUserIdAndStarred(userId, starred, pageable);
+        return PageResponse.from(page.map(SolutionResponse::from));
+    }
+
+    // 이 문제에 대한 내 풀이. 없으면 빈 값(아직 안 푼 문제)
+    public Optional<SolutionResponse> findMineByProblem(Long userId, Long problemId) {
+        return solutionRepository.findDetailedByUserIdAndProblemId(userId, problemId).map(SolutionResponse::from);
     }
 
     // 내 풀이 단일 조회

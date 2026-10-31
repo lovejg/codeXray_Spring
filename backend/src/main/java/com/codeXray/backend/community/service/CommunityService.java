@@ -1,5 +1,6 @@
 package com.codeXray.backend.community.service;
 
+import com.codeXray.backend.common.dto.PageResponse;
 import com.codeXray.backend.common.exception.BusinessException;
 import com.codeXray.backend.common.exception.ErrorCode;
 import com.codeXray.backend.community.dto.*;
@@ -15,6 +16,9 @@ import com.codeXray.backend.problem.repository.ProblemRepository;
 import com.codeXray.backend.user.entity.User;
 import com.codeXray.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,11 +42,17 @@ public class CommunityService {
     private static final Set<PostType> SUGGESTION = Set.of(PostType.FEEDBACK, PostType.BUG_REPORT, PostType.FEATURE_REQUEST);
 
     // ─── 게시글 ───────────────────────────────────────────
-    public List<PostSummaryResponse> findAllPosts(Long userId, boolean isAdmin, List<PostType> types,
-                                                  Long problemId, SuggestionStatus status, Long authorId,
-                                                  String sort) {
-        List<CommunityPost> posts = postRepository.findVisiblePosts(userId, isAdmin, types, problemId, status, authorId);
-        if (posts.isEmpty()) return List.of();
+    // 게시글 목록(페이지). 댓글 수·추천 집계는 이 페이지의 글 id 로만 두 번 묶어 조회한다(글마다 조회하지 않음)
+    public PageResponse<PostSummaryResponse> findPostPage(Long userId, boolean isAdmin, List<PostType> types,
+                                                          Long problemId, SuggestionStatus status, Long authorId,
+                                                          String sort, Pageable pageable) {
+        boolean byVotes = "votes".equalsIgnoreCase(sort);
+        Page<CommunityPost> page = postRepository.findVisiblePosts(
+                userId, isAdmin, types, problemId, status, authorId, byVotes, pageable);
+        List<CommunityPost> posts = page.getContent();
+        if (posts.isEmpty()) {
+            return PageResponse.from(new PageImpl<PostSummaryResponse>(List.of(), pageable, page.getTotalElements()));
+        }
 
         List<Long> ids = posts.stream().map(CommunityPost::getId).toList();
 
@@ -52,20 +62,11 @@ public class CommunityService {
         }
         Map<Long, VoteSummary> votes = aggregateVotes(ids, userId);
 
-        List<PostSummaryResponse> result = new ArrayList<>();
-        for (CommunityPost p : posts) {
-            result.add(PostSummaryResponse.from(
-                    p,
-                    commentCounts.getOrDefault(p.getId(), 0L),
-                    votes.getOrDefault(p.getId(), VoteSummary.empty())));
-        }
-
-        if ("votes".equalsIgnoreCase(sort)) {
-            result.sort(Comparator
-                    .comparingInt((PostSummaryResponse r) -> r.votes().score()).reversed()
-                    .thenComparing(PostSummaryResponse::createdAt, Comparator.reverseOrder()));
-        }
-        return result;
+        // 정렬은 DB 가 이미 했다(추천순 포함). 여기서는 순서를 그대로 두고 집계값만 붙인다
+        return PageResponse.from(page.map(p -> PostSummaryResponse.from(
+                p,
+                commentCounts.getOrDefault(p.getId(), 0L),
+                votes.getOrDefault(p.getId(), VoteSummary.empty()))));
     }
 
     public PostDetailResponse findOnePost(Long id, Long userId, boolean isAdmin) {
