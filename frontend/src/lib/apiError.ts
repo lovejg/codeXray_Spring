@@ -29,6 +29,14 @@ export function aiErrorText(err: unknown, fallback: string): string {
   return apiErrorMessage(err, fallback)
 }
 
+// FAILED 로 끝난 잡의 errorCode → 화면 문구
+export function aiJobFailText(errorCode: string | null, fallback: string): string {
+  if (errorCode === 'AI_UNAVAILABLE') return 'AI 기능을 지금 사용할 수 없습니다.'
+  if (errorCode === 'AI_REFUSED') return 'AI가 이 요청에는 답하지 않았어요. 코드나 요청을 바꿔 다시 시도해 주세요.'
+  if (errorCode === 'AI_TIMEOUT') return '처리가 너무 오래 걸려 중단됐어요. 다시 시도해 주세요.'
+  return fallback
+}
+
 export function apiErrorCode(err: unknown): string | undefined {
   if (err instanceof AxiosError) {
     const data = err.response?.data as ErrorBody | undefined

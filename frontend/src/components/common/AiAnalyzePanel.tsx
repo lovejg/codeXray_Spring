@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Sparkles } from 'lucide-react'
 import { aiApi, pollAiJob, type AiTask } from '../../api/ai'
-import { aiErrorText } from '../../lib/apiError'
+import { aiErrorText, aiJobFailText } from '../../lib/apiError'
 import Markdown from './Markdown'
 
 // 풀이 코드를 Claude 로 분석(최적화/설명). 하루 한도 초과 시 429 안내.
@@ -22,7 +22,7 @@ export default function AiAnalyzePanel({ code, language, problemTitle }: { code:
       if (job.status === 'DONE') {
         setResult(job.result ?? '')
       } else {
-        setError(job.errorCode === 'AI_UNAVAILABLE' ? 'AI 기능을 지금 사용할 수 없습니다.' : 'AI 분석에 실패했습니다.')
+        setError(aiJobFailText(job.errorCode, 'AI 분석에 실패했습니다.'))
       }
     } catch (err) {
       setError(aiErrorText(err, 'AI 분석에 실패했습니다.'))

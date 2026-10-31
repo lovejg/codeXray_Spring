@@ -56,6 +56,9 @@ services:
       ADMIN_EMAIL: ${ADMIN_EMAIL}
       # 비면 AI 요청만 FAILED(AI_UNAVAILABLE)로 끝나고 앱은 돈다
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      # 모델·생각 깊이. 바꾸려면 서버 .env 가 아니라 여기(커밋)에서 바꾼다
+      ANTHROPIC_MODEL: claude-opus-5-5
+      ANTHROPIC_EFFORT: medium
       AI_DAILY_LIMIT: "2"
       # 비면 소셜 로그인만 안 된다. 콜백은 프론트 화면 주소다(각 콘솔에 같은 주소를 등록)
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
