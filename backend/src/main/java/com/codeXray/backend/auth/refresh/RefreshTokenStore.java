@@ -52,6 +52,19 @@ public class RefreshTokenStore {
         return Optional.ofNullable(userId).map(Long::valueOf);
     }
 
+    /*
+     * 토큰을 "꺼내면서 지운다"(Redis GETDEL, 명령 하나라 원자적). 회전(refresh)에서 쓴다.
+     * 예전에는 조회 → 삭제 두 단계라, 같은 토큰으로 동시에 두 번 요청하면(탈취한 쪽과 진짜 사용자, 또는 탭 두 개)
+     * 둘 다 조회에 성공해 새 토큰을 두 벌 받을 수 있었다. 이제는 한쪽만 userId 를 받고 다른 쪽은 빈 값을 받는다
+     */
+    public Optional<Long> consume(String token) {
+        String userId = redisTemplate.opsForValue().getAndDelete(key(token));
+        if (userId == null) return Optional.empty();
+        Long id = Long.valueOf(userId);
+        redisTemplate.opsForSet().remove(userKey(id), token);
+        return Optional.of(id);
+    }
+
     public void delete(String token) {
         findUserId(token).ifPresent(userId -> redisTemplate.opsForSet().remove(userKey(userId), token));
         redisTemplate.delete(key(token));

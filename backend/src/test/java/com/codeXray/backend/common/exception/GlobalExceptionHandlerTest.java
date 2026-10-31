@@ -49,6 +49,17 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    @DisplayName("@PreAuthorize 거부(AccessDeniedException)는 500 이 아니라 로그인 안 했으면 401")
+    void accessDeniedIsNot500() throws Exception {
+        when(problemService.getById(anyLong()))
+                .thenThrow(new org.springframework.security.access.AccessDeniedException("denied"));
+
+        mvc.perform(get("/api/problems/1"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.errorCode").value("UNAUTHORIZED"));
+    }
+
+    @Test
     @DisplayName("예상 못 한 예외는 500 이고 내부 메시지를 내보내지 않는다")
     void unexpectedIs500() throws Exception {
         when(problemService.getById(anyLong())).thenThrow(new IllegalStateException("db password is hunter2"));

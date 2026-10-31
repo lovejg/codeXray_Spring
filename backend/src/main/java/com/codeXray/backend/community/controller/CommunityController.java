@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +21,8 @@ import java.util.List;
 @RequestMapping("/api/community")
 @RequiredArgsConstructor
 public class CommunityController {
+
+    private static final String ADMIN = "hasRole('ADMIN')";
 
     private final CommunityService communityService;
 
@@ -79,17 +82,22 @@ public class CommunityController {
         return ResponseEntity.status(HttpStatus.CREATED).body(res);
     }
 
-    // ─── 관리자 전용 (SecurityConfig 에서 ROLE_ADMIN 강제) ───
+    // ─── 관리자 전용 ───
+    // 권한은 두 겹: SecurityConfig 의 URL 규칙(공개 GET 규칙보다 앞에 둬야 하는 순서 의존) + 메서드의 @PreAuthorize.
+    // 예전에는 URL 규칙 하나뿐이라, 규칙 순서가 바뀌면 신고 목록이 비로그인에게 열릴 수 있었다
+    @PreAuthorize(ADMIN)
     @GetMapping("/admin/reports")
     public List<ReportResponse> listReports(@RequestParam(required = false) ReportStatus status) {
         return communityService.listReports(status);
     }
 
+    @PreAuthorize(ADMIN)
     @PatchMapping("/admin/reports/{id}")
     public ReportResponse updateReport(@PathVariable Long id, @Valid @RequestBody UpdateReportRequest req) {
         return communityService.updateReport(id, req.status(), req.adminNote());
     }
 
+    @PreAuthorize(ADMIN)
     @PatchMapping("/admin/posts/{id}/hide")
     public PostDetailResponse hidePost(
             @PathVariable Long id,
@@ -99,6 +107,7 @@ public class CommunityController {
         return communityService.setHidden(id, userId, req.hidden());
     }
 
+    @PreAuthorize(ADMIN)
     @PatchMapping("/posts/{id}/status")
     public PostDetailResponse updateStatus(
             @PathVariable Long id,
@@ -108,6 +117,7 @@ public class CommunityController {
         return communityService.updateStatus(id, userId, req.status());
     }
 
+    @PreAuthorize(ADMIN)
     @PatchMapping("/posts/{id}/admin-reply")
     public PostDetailResponse updateAdminReply(
             @PathVariable Long id,

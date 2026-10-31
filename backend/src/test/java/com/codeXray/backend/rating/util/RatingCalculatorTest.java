@@ -154,11 +154,11 @@ class RatingCalculatorTest {
     @Test
     @DisplayName("티어 매핑은 입력이 0 미만이거나 5 이상이어도 BRONZE_III~DIAMOND_I 안에 갇힌다")
     void 티어는_상하한을_벗어나지_않는다() {
-        // clamped = Math.max(0, Math.min(4.9999, level))
-        //  하한: level ≤ 0 → clamped 0     → familyIdx 0, (0−0)·3 = 0        → BRONZE_III
-        //  상한: level ≥ 5 → clamped 4.9999 → familyIdx 4, 0.9999·3 = 2.9997 → floor 2 → DIAMOND_I
-        // 상한 clamp 가 없으면 familyIdx 가 5 가 되어 FAMILIES[5] 에서
-        // ArrayIndexOutOfBoundsException 이 난다. 이 테스트가 그 방어를 고정한다.
+        // 칸 번호 idx = floor(level·3) 을 [0, 14] 로 자른다.
+        //  하한: level ≤ 0 → idx 0  → BRONZE_III
+        //  상한: level ≥ 5 → idx 15 이상 → 14 → DIAMOND_I
+        // 상한을 자르지 않으면 FAMILIES[5] 에서 ArrayIndexOutOfBoundsException 이 난다.
+        // 시드에 레벨 5·정답률 0% 문제가 있어 정확히 5.0 이 실제로 나온다. 이 테스트가 그 방어를 고정한다.
         assertThat(RatingCalculator.levelToTier(-3.0)).isEqualTo(Tier.BRONZE_III);
         assertThat(RatingCalculator.levelToTier(0.0)).isEqualTo(Tier.BRONZE_III);
         assertThat(RatingCalculator.levelToTier(5.0)).isEqualTo(Tier.DIAMOND_I);
@@ -168,47 +168,36 @@ class RatingCalculatorTest {
     }
 
     @Test
-    @DisplayName("서브티어 1/3 경계 10곳 중 SILVER 1/3·GOLD 2/3·PLATINUM 2/3·DIAMOND 1/3 네 곳만 부동소수점 오차로 한 칸 아래 서브티어가 나온다")
-    void 서브티어_1_3_경계의_부동소수점_동작() {
-        // ── 이 테스트는 현재 동작을 고정한 것이며 의도된 동작이 아니다.
-        //    경계 처리를 수정하면 이 테스트도 함께 바꿔야 한다. ──
-        //
-        // subIdx = floor((clamped − familyIdx) · 3) 에서 1/3 은 이진수로 유한 표현이 안 된다.
-        // 경계값의 최근접 double 이 참값보다 아래로 떨어지면 한 칸 밀리고, 위로 올라가면 밀리지 않는다.
-        // familyIdx 가 0 인 BRONZE 는 뺄셈이 없어 ×3 의 반올림이 오차를 1.0/2.0 으로 복구해 준다.
-        //
-        //   경계        double 값               (clamped−fam)·3        결과           수학적 기대
-        //   BRONZE 1/3  0.3333333333333333      1.0                    BRONZE_II      일치
-        //   BRONZE 2/3  0.6666666666666666      2.0                    BRONZE_I       일치
-        //   SILVER 1/3  1.3333333333333333      0.9999999999999998     SILVER_III     SILVER_II   ← 밀림
-        //   SILVER 2/3  1.6666666666666667      2.0                    SILVER_I       일치
-        //   GOLD   1/3  2.3333333333333335      1.0000000000000004     GOLD_II        일치
-        //   GOLD   2/3  2.6666666666666665      1.9999999999999996     GOLD_II        GOLD_I      ← 밀림
-        //   PLAT   1/3  3.3333333333333335      1.0000000000000004     PLATINUM_II    일치
-        //   PLAT   2/3  3.6666666666666665      1.9999999999999996     PLATINUM_II    PLATINUM_I  ← 밀림
-        //   DIA    1/3  4.333333333333333       0.9999999999999991     DIAMOND_III    DIAMOND_II  ← 밀림
-        //   DIA    2/3  4.666666666666667       2.000000000000001      DIAMOND_I      일치
-        //
-        // 값은 실제 집계 경로와 같은 단일 나눗셈(num/den) 형태로 만든다.
-        // 예를 들어 4.0/3 은 computeAdjustedLevel(2, null, List.of(0)) = (2·2 + 0)/(2 + 1) 로 도달 가능하다.
-
-        // 밀리지 않는 6곳
+    @DisplayName("1/3 경계 10곳이 모두 수학적 기대 서브티어로 분류된다(부동소수점 오차로 한 칸 밀리지 않는다)")
+    void 서브티어_1_3_경계는_모두_수학적_기대와_같다() {
+        // 고치기 전에는 SILVER 1/3·GOLD 2/3·PLATINUM 2/3·DIAMOND 1/3 네 곳이 한 칸 아래로 밀렸다.
+        // (1.3333333333333333 − 1)·3 = 0.9999999999999998 → floor 0 처럼, 내림을 두 번 하며 오차가 쌓였기 때문.
+        // 지금은 level·3 을 소수 6자리에서 반올림한 뒤 한 번만 내린다: 4/3·3 = 4.0 → 칸 4 = SILVER_II
         assertThat(RatingCalculator.levelToTier(1.0 / 3)).isEqualTo(Tier.BRONZE_II);
         assertThat(RatingCalculator.levelToTier(2.0 / 3)).isEqualTo(Tier.BRONZE_I);
+        assertThat(RatingCalculator.levelToTier(4.0 / 3)).isEqualTo(Tier.SILVER_II);
         assertThat(RatingCalculator.levelToTier(5.0 / 3)).isEqualTo(Tier.SILVER_I);
         assertThat(RatingCalculator.levelToTier(7.0 / 3)).isEqualTo(Tier.GOLD_II);
+        assertThat(RatingCalculator.levelToTier(8.0 / 3)).isEqualTo(Tier.GOLD_I);
         assertThat(RatingCalculator.levelToTier(10.0 / 3)).isEqualTo(Tier.PLATINUM_II);
+        assertThat(RatingCalculator.levelToTier(11.0 / 3)).isEqualTo(Tier.PLATINUM_I);
+        assertThat(RatingCalculator.levelToTier(13.0 / 3)).isEqualTo(Tier.DIAMOND_II);
         assertThat(RatingCalculator.levelToTier(14.0 / 3)).isEqualTo(Tier.DIAMOND_I);
 
-        // 한 칸 아래로 밀리는 4곳
-        assertThat(RatingCalculator.levelToTier(4.0 / 3)).isEqualTo(Tier.SILVER_III);
-        assertThat(RatingCalculator.levelToTier(8.0 / 3)).isEqualTo(Tier.GOLD_II);
-        assertThat(RatingCalculator.levelToTier(11.0 / 3)).isEqualTo(Tier.PLATINUM_II);
-        assertThat(RatingCalculator.levelToTier(13.0 / 3)).isEqualTo(Tier.DIAMOND_III);
-
-        // 집계 경로에서 실제로 4/3 이 만들어지는 것까지 확인한다.
+        // 집계 경로로 4/3 을 만들어도 같다: (2·2 + 0)/(2 + 1)
         double reachable = RatingCalculator.computeAdjustedLevel(2, null, List.of(0));
-        assertThat(reachable).isEqualTo(4.0 / 3);
-        assertThat(RatingCalculator.levelToTier(reachable)).isEqualTo(Tier.SILVER_III);
+        assertThat(reachable).isCloseTo(4.0 / 3, within(1e-9));
+        assertThat(RatingCalculator.levelToTier(reachable)).isEqualTo(Tier.SILVER_II);
+    }
+
+    @Test
+    @DisplayName("시드 id 617(레벨 1, 정답률 80%)은 0.9999999999999999 가 아니라 1.0 이 되어 SILVER_III 로 분류된다")
+    void 패밀리_경계의_부동소수점_오차를_정리한다() {
+        // arLevel = 5·(1 − 80/100) = 5·0.19999999999999996 = 0.9999999999999998 (이진 표현 오차)
+        // (2·1 + 2·0.9999999999999998) / 4 = 0.9999999999999999 → 예전에는 BRONZE_I 로 패밀리째 어긋났다
+        double adjusted = RatingCalculator.computeAdjustedLevel(1, 80.0, List.of());
+
+        assertThat(adjusted).isEqualTo(1.0);
+        assertThat(RatingCalculator.levelToTier(adjusted)).isEqualTo(Tier.SILVER_III);
     }
 }

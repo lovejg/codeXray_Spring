@@ -6,6 +6,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -58,6 +62,19 @@ public class GlobalExceptionHandler {
     })
     public ResponseEntity<ErrorResponse> handleBadRequest(Exception e) {
         return simple(HttpStatus.BAD_REQUEST, ErrorCode.INVALID_INPUT);
+    }
+
+    /**
+     * @PreAuthorize 거부. 필터 단계가 아니라 컨트롤러 호출 중에 나오므로 아래 Exception 처리기가 500 으로 바꾸지 않게 따로 받는다.
+     * 로그인 안 함 → 401, 로그인했지만 권한 없음 → 403 (필터 단계의 RestAuthenticationEntryPoint/AccessDeniedHandler 와 같은 규칙)
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException e) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        boolean anonymous = auth == null || auth instanceof AnonymousAuthenticationToken || !auth.isAuthenticated();
+        return anonymous
+                ? simple(HttpStatus.UNAUTHORIZED, ErrorCode.UNAUTHORIZED)
+                : simple(HttpStatus.FORBIDDEN, ErrorCode.FORBIDDEN);
     }
 
     /** 예상 못한 나머지 모든 예외 → 500 (민감 정보 노출 방지: 상세는 로그로만) */

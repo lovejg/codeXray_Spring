@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Lightbulb } from 'lucide-react'
 import { aiApi, pollAiJob } from '../../api/ai'
-import { aiErrorText } from '../../lib/apiError'
+import { aiErrorText, aiJobFailText } from '../../lib/apiError'
 import Markdown from './Markdown'
 
 // 문제가 안 풀릴 때, 정답 코드 없이 단계별 힌트를 받는 패널. 하루 한도 공유.
@@ -21,7 +21,7 @@ export default function AiHintPanel({ problemId }: { problemId: number }) {
       if (job.status === 'DONE') {
         setResult(job.result ?? '')
       } else {
-        setError(job.errorCode === 'AI_UNAVAILABLE' ? 'AI 기능을 지금 사용할 수 없습니다.' : 'AI 힌트에 실패했습니다.')
+        setError(aiJobFailText(job.errorCode, 'AI 힌트에 실패했습니다.'))
       }
     } catch (err) {
       setError(aiErrorText(err, 'AI 힌트에 실패했습니다.'))

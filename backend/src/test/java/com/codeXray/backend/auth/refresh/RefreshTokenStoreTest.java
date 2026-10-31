@@ -63,6 +63,39 @@ class RefreshTokenStoreTest {
     }
 
     @Test
+    @DisplayName("회전용 consume 은 토큰을 한 번만 내준다(두 번째는 빈 값)")
+    void consumeIsOneShot() {
+        String token = store.issue(USER);
+
+        assertThat(store.consume(token)).contains(USER);
+        assertThat(store.consume(token)).isEmpty();
+        assertThat(redis.opsForSet().members("refresh-user:" + USER)).doesNotContain(token);
+    }
+
+    @Test
+    @DisplayName("같은 refresh 토큰으로 동시에 회전을 시도해도 한쪽만 성공한다")
+    void concurrentConsumeHasSingleWinner() throws Exception {
+        String token = store.issue(USER);
+        int threads = 16;
+        var pool = java.util.concurrent.Executors.newFixedThreadPool(threads);
+        var start = new java.util.concurrent.CountDownLatch(1);
+        var winners = new java.util.concurrent.atomic.AtomicInteger();
+        var futures = new java.util.ArrayList<java.util.concurrent.Future<?>>();
+        for (int i = 0; i < threads; i++) {
+            futures.add(pool.submit(() -> {
+                start.await();
+                if (store.consume(token).isPresent()) winners.incrementAndGet();
+                return null;
+            }));
+        }
+        start.countDown();
+        for (var f : futures) f.get();
+        pool.shutdown();
+
+        assertThat(winners.get()).isEqualTo(1);
+    }
+
+    @Test
     @DisplayName("사용자 목록도 토큰과 같은 수명을 가진다(영원히 남지 않는다)")
     void userListExpires() {
         store.issue(USER);

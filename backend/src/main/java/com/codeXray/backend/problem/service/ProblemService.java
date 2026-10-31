@@ -31,12 +31,16 @@ public class ProblemService {
      * 검색어는 사실상 무한한 조합이라 캐시 히트율은 낮고 Redis 메모리만 잠식하기 때문.
      * → browse/필터 조회(반복이 잦고 키가 유한)만 캐싱한다.
      * 키: 모든 필터 + 페이지 정보 조합(이 조합이 곧 결과를 결정하므로 그대로 키가 된다).
+     *
+     * sync = true: 캐시가 비어 있을 때(배포 직후, 피드백으로 목록 전체 evict 직후) 같은 키로 요청이 몰려도
+     * DB 조회는 한 요청만 하고 나머지는 그 결과를 기다려 받는다(캐시 스탬피드 방지). 이 앱 인스턴스 안에서만 묶인다
      */
     @Cacheable(
             cacheNames = CacheConfig.PROBLEM_LIST,
             key = "#keyword + ':' + #source + ':' + #tierMin + ':' + #tierMax + ':' + #tagId + ':' "
                 + "+ #pageable.pageNumber + ':' + #pageable.pageSize + ':' + #pageable.sort",
-            condition = "#keyword == null || #keyword.isBlank()"
+            condition = "#keyword == null || #keyword.isBlank()",
+            sync = true
     )
     @Transactional(readOnly = true)
     public PageResponse<ProblemResponse> search(String keyword, ProblemSource source,
@@ -46,7 +50,7 @@ public class ProblemService {
         return PageResponse.from(dtoPage);
     }
 
-    @Cacheable(cacheNames = CacheConfig.PROBLEM_DETAIL, key = "#id")
+    @Cacheable(cacheNames = CacheConfig.PROBLEM_DETAIL, key = "#id", sync = true)
     @Transactional(readOnly = true)
     public ProblemResponse getById(Long id) {
         Problem problem = problemRepository.findById(id).orElseThrow(() -> new BusinessException(ErrorCode.PROBLEM_NOT_FOUND));

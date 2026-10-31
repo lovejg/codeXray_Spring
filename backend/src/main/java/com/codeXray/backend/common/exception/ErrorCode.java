@@ -63,6 +63,11 @@ public enum ErrorCode {
     // ── AI ──
     AI_RATE_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "AI 분석은 하루 한도를 초과했습니다. 내일 다시 시도해 주세요."),
     AI_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "AI 기능을 현재 사용할 수 없습니다."),
+    AI_REFUSED(HttpStatus.UNPROCESSABLE_CONTENT, "AI가 이 요청에 답할 수 없습니다. 코드나 요청을 바꿔 다시 시도해 주세요."),
+    AI_TIMEOUT(HttpStatus.GATEWAY_TIMEOUT, "AI 처리 시간이 너무 오래 걸려 중단했습니다. 다시 시도해 주세요."),
+
+    // ── 남용 방지 ──
+    TOO_MANY_LOGIN_ATTEMPTS(HttpStatus.TOO_MANY_REQUESTS, "로그인 시도가 너무 많습니다. 잠시 후 다시 시도해 주세요."),
 
     // ── OAuth (소셜 로그인) ──
     OAUTH_EMAIL_REQUIRED(HttpStatus.BAD_REQUEST, "소셜 계정의 이메일 제공에 동의해야 로그인할 수 있습니다."),
