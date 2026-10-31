@@ -39,10 +39,15 @@ public class RatingService {
     })
     @Transactional
     public FeedbackResponse submitFeedback(Long userId, Long problemId, int level) {
-        // 존재하지 않는 문제에 피드백 남기는 것 차단 (save 전에 걸러 깔끔한 404)
-        if (!problemRepository.existsById(problemId)) {
-            throw new BusinessException(ErrorCode.PROBLEM_NOT_FOUND);
-        }
+        /*
+         * 맨 먼저 문제 행을 잠근다(없으면 404). 잠금은 이 트랜잭션이 끝날 때 풀린다.
+         * 예전에는 잠금 없이 "피드백 저장 → 전체 피드백 읽기 → 계산 → 덮어쓰기"를 해서, 두 사람이 동시에 제출하면
+         * 둘 다 상대의 (아직 커밋 안 된) 피드백을 못 본 채 계산하고 나중에 커밋한 쪽이 이겨 피드백 하나가 빠진 티어가 남았다.
+         * 이제 같은 문제의 제출은 줄을 서고, 뒤에 선 쪽은 앞사람 커밋 뒤의 피드백 전체로 계산한다.
+         * 문제마다 잠금이라 다른 문제의 제출과는 서로 기다리지 않는다
+         */
+        Problem problem = problemRepository.findByIdForUpdate(problemId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PROBLEM_NOT_FOUND));
 
         // 실제로 풀어본(=풀이를 등록한) 문제만 체감 난이도를 남길 수 있음
         if (solutionRepository.findByUserIdAndProblemId(userId, problemId).isEmpty()) {
@@ -54,7 +59,8 @@ public class RatingService {
                 .orElseGet(() -> feedbackRepository.save(
                         LevelFeedback.builder().userId(userId).problemId(problemId).level(level).build()));
 
-        recomputeProblem(problemId);
+        feedbackRepository.flush(); // 방금 저장한 피드백이 아래 조회에 들어가도록 먼저 DB 로 보낸다
+        applyRecomputed(problem);
         return FeedbackResponse.from(feedback);
     }
 
@@ -66,12 +72,9 @@ public class RatingService {
     }
 
     // 단일 문제 재계산: 원본레벨 + 정답률 + 모든 피드백 → adjustedLevel/tier
-    @Transactional
-    public void recomputeProblem(Long problemId) {
-        Problem problem = problemRepository.findById(problemId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.PROBLEM_NOT_FOUND));
-
-        List<Integer> levels = feedbackRepository.findByProblemId(problemId).stream()
+    // 잠근 문제의 피드백 전체로 adjustedLevel/tier 를 다시 계산해 반영(dirty checking 으로 UPDATE)
+    private void applyRecomputed(Problem problem) {
+        List<Integer> levels = feedbackRepository.findByProblemId(problem.getId()).stream()
                 .map(LevelFeedback::getLevel)
                 .toList();
 

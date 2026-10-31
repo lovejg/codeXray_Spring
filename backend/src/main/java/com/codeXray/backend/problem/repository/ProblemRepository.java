@@ -3,7 +3,9 @@ package com.codeXray.backend.problem.repository;
 import com.codeXray.backend.problem.entity.Problem;
 import com.codeXray.backend.problem.entity.Tier;
 import org.springframework.data.domain.Pageable;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -12,6 +14,12 @@ import java.util.Optional;
 
 public interface ProblemRepository
         extends JpaRepository<Problem, Long>, ProblemRepositoryCustom {
+
+    // 체감 난이도 재계산용: 문제 행에 쓰기 잠금(SELECT ... FOR UPDATE)을 걸고 읽는다.
+    // 같은 문제에 피드백이 동시에 들어와도 재계산이 한 줄로 서서 마지막 결과가 모든 피드백을 반영한다
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select p from Problem p where p.id = :id")
+    Optional<Problem> findByIdForUpdate(@Param("id") Long id);
 
     // 붙여넣은 URL 매칭용: link 가 "/lessons/{번호}" 로 끝나는 문제 조회
     // (파생 쿼리 → 자동으로 WHERE link LIKE %/lessons/{번호} 생성)
