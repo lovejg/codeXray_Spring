@@ -1,0 +1,77 @@
+[09:18:03] perf 컨테이너 기동
+[09:18:06] == 1-before: jar 빌드 ==
+ .../java/com/codeXray/backend/problem/entity/AlgorithmTag.java     | 1 -
+ .../java/com/codeXray/backend/problem/service/ProblemService.java  | 7 -------
+ 2 files changed, 8 deletions(-)
+warning: [QueryDSL] Circular Q-class references detected.
+  This may cause class initialization deadlock in multi-threaded environments.
+  
+  Detected cycles:
+    (1) Solution → Memo → Solution
+  
+  To avoid deadlock, consider:
+    (1) Removing the bidirectional association on one side.
+    (2) Pre-initializing Q-classes in a single thread before handling requests (e.g. via @PostConstruct).
+    (3) Using 'new QClass("alias")' instead of static field access in your repositories.
+/tmp/codexray-perf-1-before/backend/src/main/java/com/codeXray/backend/config/CacheConfig.java:41: warning: [removal] GenericJackson2JsonRedisSerializer in org.springframework.data.redis.serializer has been deprecated and marked for removal
+                .serializeValuesWith(SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()));
+                                                                          ^
+2 warnings
+[09:18:15] 앱 기동 (PERF_STATE=1-before)
+[09:18:51] 워밍업 30s (결과 버림)
+reqs/s=1503.0 p95=62.40ms p99=97.47ms fail=0.00% reqs=42012
+[09:19:19] 본 측정 run1 30s
+reqs/s=1675.4 p95=55.09ms p99=67.27ms fail=0.00% reqs=47064
+[09:19:48] 본 측정 run2 30s
+reqs/s=1677.1 p95=54.95ms p99=64.94ms fail=0.00% reqs=46971
+[09:20:17] 1-before 끝: DBSIZE=0, SQL=2856990.0 / 요청=136047
+[09:20:27] == 2-batch: jar 빌드 ==
+ .../java/com/codeXray/backend/problem/service/ProblemService.java  | 7 -------
+ 1 file changed, 7 deletions(-)
+warning: [QueryDSL] Circular Q-class references detected.
+  This may cause class initialization deadlock in multi-threaded environments.
+  
+  Detected cycles:
+    (1) Solution → Memo → Solution
+  
+  To avoid deadlock, consider:
+    (1) Removing the bidirectional association on one side.
+    (2) Pre-initializing Q-classes in a single thread before handling requests (e.g. via @PostConstruct).
+    (3) Using 'new QClass("alias")' instead of static field access in your repositories.
+/tmp/codexray-perf-2-batch/backend/src/main/java/com/codeXray/backend/config/CacheConfig.java:41: warning: [removal] GenericJackson2JsonRedisSerializer in org.springframework.data.redis.serializer has been deprecated and marked for removal
+                .serializeValuesWith(SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()));
+                                                                          ^
+2 warnings
+[09:20:34] 앱 기동 (PERF_STATE=2-batch)
+[09:21:09] 워밍업 30s (결과 버림)
+reqs/s=3063.8 p95=36.76ms p99=64.94ms fail=0.00% reqs=85654
+[09:21:38] 본 측정 run1 30s
+reqs/s=3544.2 p95=28.11ms p99=41.28ms fail=0.00% reqs=99376
+[09:22:06] 본 측정 run2 30s
+reqs/s=3661.6 p95=26.56ms p99=36.89ms fail=0.00% reqs=102511
+[09:22:35] 2-batch 끝: DBSIZE=0, SQL=1150167.0 / 요청=287541
+[09:22:45] == 3-cache: jar 빌드 ==
+warning: [QueryDSL] Circular Q-class references detected.
+  This may cause class initialization deadlock in multi-threaded environments.
+  
+  Detected cycles:
+    (1) Solution → Memo → Solution
+  
+  To avoid deadlock, consider:
+    (1) Removing the bidirectional association on one side.
+    (2) Pre-initializing Q-classes in a single thread before handling requests (e.g. via @PostConstruct).
+    (3) Using 'new QClass("alias")' instead of static field access in your repositories.
+/tmp/codexray-perf-3-cache/backend/src/main/java/com/codeXray/backend/config/CacheConfig.java:41: warning: [removal] GenericJackson2JsonRedisSerializer in org.springframework.data.redis.serializer has been deprecated and marked for removal
+                .serializeValuesWith(SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()));
+                                                                          ^
+2 warnings
+[09:22:53] 앱 기동 (PERF_STATE=3-cache)
+[09:23:29] 워밍업 30s (결과 버림)
+reqs/s=11342.0 p95=9.93ms p99=16.68ms fail=0.00% reqs=317193
+[09:23:58] 본 측정 run1 30s
+reqs/s=13056.6 p95=7.92ms p99=12.45ms fail=0.00% reqs=364773
+[09:24:26] 본 측정 run2 30s
+reqs/s=12843.0 p95=8.02ms p99=12.77ms fail=0.00% reqs=359971
+[09:24:55] 3-cache 끝: DBSIZE=1, SQL=203.0 / 요청=1041937
+[09:25:05] 끝. 요약: /home/tmakdrl/spring/codeXray/perf/results/20261101-0918/summary.md
+[09:25:05] Grafana: http://localhost:3300/d/codexray-perf?from=1793492256868&to=1793492735772
