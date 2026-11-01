@@ -6,7 +6,8 @@
 #   비밀번호는 실행할 때마다 새로 만들고 어디에도 남기지 않는다
 # - 백엔드는 지금 작업 트리로 bootJar 를 만들어 perf 프로필로 띄운다(Kafka 없음 → AI 요청 화면은 찍지 않는다)
 # - 화면은 vite build 결과를 vite preview 로 띄운다(/api 는 vite.config.ts 의 프록시로 8080 에)
-# 결과: docs/screenshots/01~14.png (1440×900, 2배율). 15 이후(AI 결과, 브라우저 확장)는 운영에서 손으로 찍어 넣는다
+# 결과: docs/screenshots/01~14.png (본문 영역만 잘라 2배율로). 15 이후(AI 결과, 브라우저 확장)는 운영에서 손으로 찍어
+#       핵심만 잘라 넣는다(원본 전체는 포트폴리오 폴더에 따로 둔다)
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
