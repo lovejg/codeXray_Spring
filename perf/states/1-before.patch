@@ -1,0 +1,30 @@
+diff --git a/backend/src/main/java/com/codeXray/backend/problem/entity/AlgorithmTag.java b/backend/src/main/java/com/codeXray/backend/problem/entity/AlgorithmTag.java
+index 4d033c9..73837e4 100644
+--- a/backend/src/main/java/com/codeXray/backend/problem/entity/AlgorithmTag.java
++++ b/backend/src/main/java/com/codeXray/backend/problem/entity/AlgorithmTag.java
+@@ -12,7 +12,6 @@ import org.hibernate.annotations.BatchSize;
+ @Getter
+ @NoArgsConstructor(access = AccessLevel.PROTECTED)
+ // 여러 ProblemTag가 참조하는 태그를 개별 조회하면 N+1 → 최대 100개까지 IN 절로 묶어 로딩
+-@BatchSize(size = 100)
+ public class AlgorithmTag {
+     @Id
+     @GeneratedValue(strategy = GenerationType.IDENTITY)
+diff --git a/backend/src/main/java/com/codeXray/backend/problem/service/ProblemService.java b/backend/src/main/java/com/codeXray/backend/problem/service/ProblemService.java
+index e7723c4..94eeb41 100644
+--- a/backend/src/main/java/com/codeXray/backend/problem/service/ProblemService.java
++++ b/backend/src/main/java/com/codeXray/backend/problem/service/ProblemService.java
+@@ -35,13 +35,6 @@ public class ProblemService {
+      * sync = true: 캐시가 비어 있을 때(배포 직후, 피드백으로 목록 전체 evict 직후) 같은 키로 요청이 몰려도
+      * DB 조회는 한 요청만 하고 나머지는 그 결과를 기다려 받는다(캐시 스탬피드 방지). 이 앱 인스턴스 안에서만 묶인다
+      */
+-    @Cacheable(
+-            cacheNames = CacheConfig.PROBLEM_LIST,
+-            key = "#keyword + ':' + #source + ':' + #tierMin + ':' + #tierMax + ':' + #tagId + ':' "
+-                + "+ #pageable.pageNumber + ':' + #pageable.pageSize + ':' + #pageable.sort",
+-            condition = "#keyword == null || #keyword.isBlank()",
+-            sync = true
+-    )
+     @Transactional(readOnly = true)
+     public PageResponse<ProblemResponse> search(String keyword, ProblemSource source,
+                                                 Integer tierMin, Integer tierMax, Long tagId, Pageable pageable) {

@@ -116,6 +116,12 @@ app:
       token-uri: ${NAVER_TOKEN_URI:https://nid.naver.com/oauth2.0/token}
       userinfo-uri: ${NAVER_USERINFO_URI:https://openapi.naver.com/v1/nid/me}
 
+management:
+  health:
+    # 기본 health 는 SMTP 서버에도 접속해 본다. 상태 확인 한 번에 외부 메일 서버를 두드리지 않게 끈다
+    mail:
+      enabled: false
+
 logging:
   level:
     org.hibernate.SQL: debug

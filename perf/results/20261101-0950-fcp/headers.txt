@@ -1,0 +1,5 @@
+port 5181  /assets/index-Dat1e8ln.js  content-encoding: (없음)  전송 1782724 bytes
+port 5182  /assets/index-Dat1e8ln.js  Content-Encoding: gzip  전송 582814 bytes
+port 5183  /assets/index-BPo8wa3d.js  Content-Encoding: gzip  전송 112748 bytes
+port 5184  /assets/index-BPo8wa3d.js  content-encoding: (없음)  전송 347403 bytes
+port 5185  /assets/index-BPo8wa3d.js  Content-Encoding: gzip  전송 112748 bytes

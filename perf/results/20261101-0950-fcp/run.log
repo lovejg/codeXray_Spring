@@ -1,0 +1,18 @@
+[09:50:29] 화면 이미지 빌드(네 개)
+sha256:aa0d6097d1c3a5b3ef4065bc8cc20b8d6b71e9a83b12d3df80d8bd84a2708944
+sha256:e74026ef4ea84f05d5b99a694945cc3db7ad255d99ade156127962ac11cec1fb
+sha256:14d6a7a155df3b1a9aaf1e3fbe1c6e1b7008e126682c837c072060b46f07f9e0
+sha256:f66f78fe0f43f3d5ef2697604b62940adb50f0480b68ac0397982526bf686dc8
+[09:50:52] 컨테이너 기동
+[09:50:57] FCP 측정(경우마다 5회 중앙값)
+1-before         /          FCP 9785ms  LCP 9888ms  JS 1741KB (1개, none)
+1-before         /problems  FCP 9784ms  LCP 9881ms  JS 1741KB (1개, none)
+2-gzip           /          FCP 3569ms  LCP 3678ms  JS 570KB (1개, gzip)
+2-gzip           /problems  FCP 3566ms  LCP 3665ms  JS 570KB (1개, gzip)
+3-split          /          FCP 1034ms  LCP 1137ms  JS 111KB (1개, gzip)
+3-split          /problems  FCP 1042ms  LCP 1485ms  JS 121KB (11개, gzip/none)
+4-proxy-nogzip   /          FCP 2405ms  LCP 2511ms  JS 340KB (1개, none)
+4-proxy-nogzip   /problems  FCP 2402ms  LCP 2856ms  JS 355KB (11개, none)
+5-proxy          /          FCP 1040ms  LCP 1142ms  JS 111KB (1개, gzip)
+5-proxy          /problems  FCP 1034ms  LCP 1477ms  JS 121KB (11개, gzip/none)
+[09:55:17] 끝. 요약: /home/tmakdrl/spring/codeXray/perf/results/20261101-0950-fcp/summary.md

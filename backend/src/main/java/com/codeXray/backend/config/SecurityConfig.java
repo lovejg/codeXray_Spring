@@ -64,6 +64,8 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()  // 가입/로그인 등은 열어둠
+                        // 상태 확인·지표. 지표(prometheus)는 perf 프로필에서만 노출되고, 운영 nginx 는 /api 만 넘겨 밖에서는 닿지 않는다
+                        .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/prometheus").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/problems/**").permitAll() // 문제 조회는 공개
                         .requestMatchers(HttpMethod.GET, "/api/tags").permitAll() // 태그 목록 조회는 공개
                         // 커뮤니티 관리자 전용은 공개 GET 규칙보다 먼저 (순서 중요)

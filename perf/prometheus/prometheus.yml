@@ -1,0 +1,10 @@
+# 앱(localhost:8080)의 지표를 5초마다 긁는다. k6 값은 remote write 로 따로 들어온다.
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+scrape_configs:
+  - job_name: codexray-backend
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["localhost:8080"]
