@@ -392,7 +392,7 @@ from (values
 create temp table demo_notes (n int, type varchar, title varchar, body text, language varchar, days int, tags text[]) on commit drop;
 insert into demo_notes values
   (2, 'PATTERN', '원형 배열 DP는 경우를 둘로 나눈다', '첫 원소를 쓰는 경우(마지막 제외)와 안 쓰는 경우(첫 원소 제외)로 나눠 선형 DP 두 번을 돌리고 큰 값을 고른다. 예: 도둑질', null, 17, array['DP', '원형']),
-  (2, 'CODE', '이분탐색 템플릿 (조건을 만족하는 최솟값)', $n$"이 값이면 되는가"가 단조(작으면 안 되다가 어느 순간부터 계속 됨)일 때 쓴다. 입국심사, 징검다리.
+  (2, 'CODE', '이분탐색 템플릿 (조건을 만족하는 최솟값)', $n$**"이 값이면 되는가"**가 단조(작으면 안 되다가 어느 순간부터 계속 됨)일 때 쓴다. 입국심사, 징검다리.
 
 ```java
 long lo = 1, hi = maxAnswer;
