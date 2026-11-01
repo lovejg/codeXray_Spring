@@ -23,8 +23,14 @@ const ctx = await browser.newContext({
 const page = await ctx.newPage();
 page.on('pageerror', (e) => console.log('  [화면 오류]', e.message));
 
+// Playwright 도커 이미지의 system-ui 는 한글을 보통 굵기만 있는 글꼴(WenQuanYi)로 그려서 <strong> 한글이 굵게 안 보인다.
+// 캡처할 때만 본문 글꼴을 앱 CSS 목록(index.css)에 이미 있는 Noto Sans KR(웹 글꼴)로 둔다. 사용자 PC 에서는 OS 글꼴로 정상이다
+const KR_FONT = 'https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=block';
+
 // 화면이 다 그려질 때까지: 네트워크가 잠잠해지고, 로딩 표시가 사라지고, 글꼴까지 들어온 뒤 조금 더 기다린다
 async function settle() {
+  await page.addStyleTag({ url: KR_FONT }).catch(() => {});
+  await page.addStyleTag({ content: "body { font-family: 'Noto Sans KR', sans-serif; }" });
   await page.waitForLoadState('networkidle').catch(() => {});
   await page.waitForFunction(() => !document.querySelector('.animate-pulse, .animate-spin'), null, { timeout: 10000 }).catch(() => {});
   await page.evaluate(() => document.fonts.ready);

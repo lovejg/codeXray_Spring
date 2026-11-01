@@ -6,7 +6,7 @@
 #   비밀번호는 실행할 때마다 새로 만들고 어디에도 남기지 않는다
 # - 백엔드는 지금 작업 트리로 bootJar 를 만들어 perf 프로필로 띄운다(Kafka 없음 → AI 요청 화면은 찍지 않는다)
 # - 화면은 vite build 결과를 vite preview 로 띄운다(/api 는 vite.config.ts 의 프록시로 8080 에)
-# 결과: docs/screenshots/*.png (1440×900, 2배율)
+# 결과: docs/screenshots/01~14.png (1440×900, 2배율). 15 이후(AI 결과, 브라우저 확장)는 운영에서 손으로 찍어 넣는다
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
@@ -83,7 +83,8 @@ PIDS+=($!)
 for _ in $(seq 30); do curl -sf localhost:4173 > /dev/null && break; sleep 1; done
 
 log "캡처"
-rm -rf "$OUT"; mkdir -p "$OUT"
+# 이 스크립트가 찍는 01~14 만 지운다. 15 이후는 운영에서 직접 찍은 것(AI 결과, 브라우저 확장)이라 남긴다
+mkdir -p "$OUT"; rm -f "$OUT"/0[1-9]-*.png "$OUT"/1[0-4]-*.png
 docker run --rm --network host --ipc=host --user "$(id -u):$(id -g)" -e HOME=/tmp \
   -e DEMO_EMAIL=demo2@codexray-demo.example -e DEMO_PASSWORD="$DEMO_PASSWORD" \
   -e PROBLEM_ID=561 -e SOL_ID="$SOL_ID" -e NOTE_ID="$NOTE_ID" -e POST_ID="$POST_ID" -e SUGG_ID="$SUGG_ID" \

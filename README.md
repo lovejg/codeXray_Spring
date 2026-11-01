@@ -32,7 +32,7 @@ codeXray는 알고리즘 문제를 풀고, 풀이·메모·노트를 남기고, 
 
 ## 🖥 화면
 
-시연 데이터([`deploy/demo-seed.sql`](deploy/demo-seed.sql))를 넣고 [`docs/capture-screens.sh`](docs/capture-screens.sh)로 자동 캡처한 화면입니다. 화면이 바뀌면 같은 명령으로 다시 찍습니다.
+시연 데이터([`deploy/demo-seed.sql`](deploy/demo-seed.sql))를 넣고 [`docs/capture-screens.sh`](docs/capture-screens.sh)로 자동 캡처한 화면입니다. 화면이 바뀌면 같은 명령으로 다시 찍습니다. 브라우저 확장(16·17)은 운영 사이트에서 직접 찍었습니다.
 
 | | |
 |---|---|
@@ -41,6 +41,7 @@ codeXray는 알고리즘 문제를 풀고, 풀이·메모·노트를 남기고, 
 | ![풀이 상세](docs/screenshots/06-solution-detail.png) **풀이 상세** · AI 분석(풀이 설명·최적화 제안), 메모 | ![내 풀이](docs/screenshots/05-solutions.png) **내 풀이** · 별표, 메모 표시 |
 | ![노트](docs/screenshots/09-note-detail.png) **학습 노트** · 마크다운, 코드 블록 복사 | ![프로필](docs/screenshots/14-profile.png) **프로필 대시보드** · 스트릭, 티어·언어·태그 분포, 약점 태그 |
 | ![커뮤니티 글](docs/screenshots/11-community-post.png) **커뮤니티** · 질문/풀이 공유, 추천, 댓글, 신고 | ![건의사항](docs/screenshots/13-suggestion-post.png) **건의사항** · 처리 상태, 관리자 답변 |
+| ![확장 저장](docs/screenshots/16-extension-save.png) **브라우저 확장** · 프로그래머스 문제 화면의 `❯ 저장` 버튼, 원클릭 저장 | ![확장 로그인](docs/screenshots/17-extension-login.png) **확장 로그인** · 쿠키 대신 `X-Refresh-Token` 헤더로 인증 |
 
 <details>
 <summary>나머지 화면 (로그인, 노트 목록, 커뮤니티 목록, 건의사항 목록)</summary>
