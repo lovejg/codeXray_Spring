@@ -2,6 +2,9 @@ import { isValidElement, useState, type ReactNode } from 'react'
 import { Copy, Check } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+// CommonMark 은 닫는 ** 앞이 문장부호(" ) 등)이고 뒤가 글자면 굵게로 보지 않는다. 한국어는 조사가 바로 붙어서
+// **"…"**를 처럼 별표가 그대로 보였다(AI 답변에서 자주). 이 플러그인이 한중일 문자 옆에서는 그 규칙을 풀어 준다
+import remarkCjkFriendly from 'remark-cjk-friendly'
 import rehypeHighlight from 'rehype-highlight'
 
 // React 자식 트리(hljs span 들)에서 원본 코드 텍스트만 추출 → 복사용
@@ -46,7 +49,7 @@ export default function Markdown({ children }: { children: string }) {
   return (
     <div className="markdown text-sm leading-relaxed text-slate-200">
       <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
+        remarkPlugins={[remarkGfm, remarkCjkFriendly]}
         rehypePlugins={[[rehypeHighlight, { detect: true, ignoreMissing: true }]]}
         components={{
           code({ className, children, ...props }) {
