@@ -50,6 +50,8 @@ public class CacheConfig {
         return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(base.entryTtl(Duration.ofMinutes(10))) // 정의 안 된 캐시의 기본 TTL
                 .withInitialCacheConfigurations(perCache)
+                // 적중·실패 횟수를 센다. Actuator 가 cache.gets{result=hit|miss} 지표로 내보내 캐시 적중률을 그래프로 볼 수 있다
+                .enableStatistics()
                 .build();
     }
 }

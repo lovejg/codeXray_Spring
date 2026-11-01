@@ -39,6 +39,13 @@ dependencies {
 	// starter 필요(@KafkaListener/KafkaAdmin/KafkaTemplate 자동설정 포함)
 	implementation 'org.springframework.boot:spring-boot-starter-kafka'
 
+	// 지표 — Actuator + Prometheus 형식 내보내기. 성능 측정(perf/)에서 Grafana 로 처리량·지연·요청당 SQL 수·캐시 적중률을 본다.
+	// 지표 주소(/actuator/prometheus)는 perf 프로필에서만 열린다(application-perf.yml). 운영은 health 만 있고 nginx 가 /api 만 넘겨 밖에서 닿지 않는다
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+	// Hibernate 통계(실행된 SQL 수 등)를 Micrometer 지표로. generate_statistics 를 켠 perf 프로필에서만 값이 쌓인다
+	implementation 'org.hibernate.orm:hibernate-micrometer'
+
 	// Mail — 이메일 인증 발송 (Node의 nodemailer)
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
 
