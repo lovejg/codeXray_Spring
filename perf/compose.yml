@@ -1,0 +1,77 @@
+# 성능 측정 전용 환경. 운영·개발 컨테이너(codexray-db, codexray-redis …)와 이름·포트·데이터가 겹치지 않는다.
+#
+#   docker compose -f perf/compose.yml up -d     # 띄우기
+#   docker compose -f perf/compose.yml down -v   # 데이터까지 지우기
+#
+# 앱(Spring Boot)과 k6 는 컨테이너가 아니라 호스트(WSL)에서 돈다(perf/run-backend.sh).
+# Prometheus·Grafana 는 호스트 네트워크를 써서 localhost:8080(앱)을 그대로 긁는다.
+#
+#   Grafana     http://localhost:3300   (로그인 없이 열림 — 로컬 전용)
+#   Prometheus  http://localhost:9390
+#   Postgres    localhost:55432  (perf / perf, DB codexray)
+#   Redis       localhost:56379
+name: codexray-perf
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: codexray
+      POSTGRES_USER: perf
+      POSTGRES_PASSWORD: perf
+    ports: ["55432:5432"]
+    volumes:
+      - perf-pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U perf -d codexray"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7
+    ports: ["56379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    network_mode: host
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --web.listen-address=:9390
+      # k6 가 측정값을 밀어 넣는 입구(remote write). 부하를 거는 쪽(k6)과 받는 쪽(앱)의 값을 한 곳에서 본다
+      - --web.enable-remote-write-receiver
+      - --storage.tsdb.retention.time=30d
+      # k6 가 밀어 넣은 값은 실행이 끝나도 "끝났다"는 표시가 없어 기본 5분 동안 마지막 값이 선으로 이어진다.
+      # 측정이 끝난 구간에 선이 남지 않게 15초로 줄인다
+      - --query.lookback-delta=15s
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - perf-prom:/prometheus
+
+  grafana:
+    image: grafana/grafana:12.0.2
+    network_mode: host
+    environment:
+      GF_SERVER_HTTP_PORT: "3300"
+      # 로컬 측정 전용이라 로그인 없이 연다(밖으로 포트를 열지 않는다)
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+      GF_USERS_DEFAULT_THEME: dark
+      GF_NEWS_NEWS_FEED_ENABLED: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - perf-grafana:/var/lib/grafana
+
+volumes:
+  perf-pg:
+  perf-prom:
+  perf-grafana:

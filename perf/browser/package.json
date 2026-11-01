@@ -1,0 +1,9 @@
+{
+  "name": "codexray-perf-browser",
+  "private": true,
+  "description": "화면 첫 로딩(FCP/LCP) 측정과 Grafana·서비스 화면 캡처. Playwright 공식 도커 이미지 안에서 돌린다(perf/README.md)",
+  "type": "module",
+  "dependencies": {
+    "playwright": "1.49.1"
+  }
+}
