@@ -392,7 +392,23 @@ from (values
 create temp table demo_notes (n int, type varchar, title varchar, body text, language varchar, days int, tags text[]) on commit drop;
 insert into demo_notes values
   (2, 'PATTERN', '원형 배열 DP는 경우를 둘로 나눈다', '첫 원소를 쓰는 경우(마지막 제외)와 안 쓰는 경우(첫 원소 제외)로 나눠 선형 DP 두 번을 돌리고 큰 값을 고른다. 예: 도둑질', null, 17, array['DP', '원형']),
-  (3, 'CODE', 'BFS 템플릿 (격자)', $n$from collections import deque
+  (2, 'CODE', '이분탐색 템플릿 (조건을 만족하는 최솟값)', $n$"이 값이면 되는가"가 단조(작으면 안 되다가 어느 순간부터 계속 됨)일 때 쓴다. 입국심사, 징검다리.
+
+```java
+long lo = 1, hi = maxAnswer;
+while (lo < hi) {
+    long mid = (lo + hi) / 2;
+    if (possible(mid)) hi = mid;   // mid 로 되면 더 작은 답을 찾는다
+    else lo = mid + 1;
+}
+return lo;
+```
+
+- `hi = mid` 쪽이므로 `mid` 는 내림. 올림으로 하면 무한 루프
+- 범위가 10^9 을 넘을 수 있으면 `long`$n$, 'java', 6, array['이분탐색', '템플릿']),
+  (2, 'MISTAKE', 'int 곱셈 오버플로', '입국심사에서 mid * n 을 int 로 계산해 큰 입력에서 음수가 나왔다. 범위가 10^9 을 넘을 수 있으면 처음부터 long 으로 둔다', null, 11, array['실수', '자료형']),
+  (3, 'CODE', 'BFS 템플릿 (격자)', $n$```python
+from collections import deque
 q = deque([(sx, sy)])
 dist[sx][sy] = 0
 while q:
@@ -401,7 +417,8 @@ while q:
         nx, ny = x + dx, y + dy
         if in_range(nx, ny) and dist[nx][ny] == -1:
             dist[nx][ny] = dist[x][y] + 1
-            q.append((nx, ny))$n$, 'python', 27, array['BFS', '템플릿']),
+            q.append((nx, ny))
+```$n$, 'python', 27, array['BFS', '템플릿']),
   (4, 'MISTAKE', '그리디인 줄 알았는데 경우 비교였던 문제', '조이스틱: "가까운 쪽으로 이동"만 하면 틀린다. 연속된 A 구간을 기준으로 오른쪽 왕복, 왼쪽 왕복, 그냥 오른쪽 셋을 다 비교해야 한다', null, 24, array['그리디', '반례']),
   (5, 'PATTERN', '최솟값의 최댓값 = 파라메트릭 서치', '답(mid)을 정해 두고 "이 답이 가능한가"를 O(n)에 판정할 수 있으면 이분탐색. 입국심사, 징검다리', null, 9, array['이분탐색']),
   (1, 'OTHER', '코딩테스트 준비 루틴', '하루 2문제: 하나는 푼 유형 복습, 하나는 새 유형. 막히면 30분 뒤 힌트 보기', null, 12, array['루틴']);
