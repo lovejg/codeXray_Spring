@@ -110,7 +110,7 @@ codeXray는 알고리즘 문제를 풀고, 풀이·메모·노트를 남기고, 
 |---|---|---|
 | ![처리량](perf/results/20261101-0918/grafana/bar-throughput.png) | ![p95](perf/results/20261101-0918/grafana/bar-p95.png) | ![요청당 SQL](perf/results/20261101-0918/grafana/ts-sql-per-request.png) |
 
-<sub>Grafana 막대는 10초 구간 값의 중앙값이라 표(k6 요약)보다 7% 정도 낮게 나옵니다. 인용할 숫자는 표를 씁니다.</sub>
+<sub>p95·SQL 막대의 숫자는 표와 같습니다. 처리량 막대는 길이(비율)만 보여 줍니다. 표의 처리량은 k6 요약(요청 수 ÷ k6가 잰 실행 시간)이라 Prometheus의 구간 값으로는 똑같이 만들 수 없어서, 숫자가 두 개로 보이지 않게 막대에서는 숨겼습니다.</sub>
 
 - **같은 조건으로 누구나 다시 잴 수 있게** 만들었습니다. [`perf/run-backend.sh`](perf/README.md) 한 번이면 ①②③ 코드 상태를 패치로 만들어(운영 코드에 측정용 스위치 없음) 측정 전용 Postgres·Redis·Prometheus·Grafana를 띄우고, k6 원본 JSON과 서버 지표(Hibernate SQL 수, Redis 키 수)를 저장합니다.
 - **요청당 SQL 21** = 본문 1 + count 1 + 태그 연결 배치 1 + 태그 개별 조회 18(첫 페이지 50문제의 서로 다른 태그 수). ②의 4는 회귀 테스트(`ProblemListQueryCountTest`)로 상한을 고정했습니다.

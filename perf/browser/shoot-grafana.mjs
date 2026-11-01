@@ -44,11 +44,18 @@ await page.goto(`${base}/d/codexray-perf?${range}&kiosk&theme=dark`)
 await settle()
 await page.screenshot({ path: `${outDir}/dashboard.png`, fullPage: true })
 
+// 패널 오른쪽 위 메뉴(⋮)는 마우스가 패널 위에 있으면 나타난다. 마우스를 빼고, 혹시 남아도 보이지 않게 숨긴다
+const HIDE_MENU = `[aria-label^="Menu for panel"], [data-testid*="panel-menu"], [data-testid*="Panel menu"],
+  [data-testid="data-testid panel-menu-button"] { display: none !important; }`
+
 for (const [id, name] of PANELS) {
   const wide = name.startsWith('ts-')
-  await page.setViewportSize(wide ? { width: 1200, height: 520 } : { width: 900, height: 420 })
+  await page.setViewportSize(wide ? { width: 1200, height: 520 } : { width: 900, height: 460 })
   await page.goto(`${base}/d-solo/codexray-perf?${range}&panelId=${id}&theme=dark`)
   await settle()
+  await page.addStyleTag({ content: HIDE_MENU })
+  await page.mouse.move(0, 0)
+  await page.waitForTimeout(300)
   await page.screenshot({ path: `${outDir}/${name}.png` })
 }
 await browser.close()
