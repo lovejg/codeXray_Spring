@@ -93,6 +93,27 @@ export default function Markdown({ children }: { children: string }) {
           blockquote({ children }) {
             return <blockquote className="my-2 border-l-2 border-slate-600 pl-3 text-slate-400">{children}</blockquote>
           },
+          // 표(GFM). 스타일이 없으면 Tailwind 기본값 때문에 칸 사이 여백·선이 없어 글자가 붙어 보인다(AI 답변에 표가 자주 나온다).
+          // 넓은 표는 본문 밖으로 넘치지 않게 가로 스크롤
+          table({ children }) {
+            return (
+              <div className="my-3 overflow-x-auto rounded-lg border border-slate-800">
+                <table className="w-full border-collapse text-left text-[13px]">{children}</table>
+              </div>
+            )
+          },
+          thead({ children }) {
+            return <thead className="bg-slate-800/60 text-slate-100">{children}</thead>
+          },
+          th({ children, style }) {
+            return <th style={style} className="border-b border-slate-700 px-3 py-2 font-semibold whitespace-nowrap">{children}</th>
+          },
+          td({ children, style }) {
+            return <td style={style} className="border-t border-slate-800 px-3 py-2 align-top">{children}</td>
+          },
+          hr() {
+            return <hr className="my-4 border-slate-800" />
+          },
         }}
       >
         {children}
