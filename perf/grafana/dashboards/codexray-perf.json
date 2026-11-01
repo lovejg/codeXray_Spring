@@ -58,14 +58,14 @@
       },
       "options": {
         "mode": "markdown",
-        "content": "**GET /api/problems (50건) · k6 50 VU · think-time 0 · 단계마다 워밍업 30초 + 본 측정 30초×2 · JVM 재시작·캐시 비움**  \n위 막대는 대시보드 시간 범위 안의 *본 측정* 구간만 모은 값이다. 표에 옮길 숫자의 정본은 `perf/results/<시각>/summary.md`(k6 원본 요약)다. 선 그래프의 회색 띠는 단계 구간(annotation)이다."
+        "content": "**GET /api/problems (50건) · k6 50 VU · think-time 0 · 단계마다 워밍업 30초 + 본 측정 30초×2 · JVM 재시작·캐시 비움**  \n처리량 막대는 **길이(비율)만** 보여 준다. 숫자의 정본은 `perf/results/<시각>/summary.md`(k6 요약: 요청 수 ÷ k6 가 잰 실행 시간, 2회 중앙값)다. p95·SQL 막대의 숫자는 그 표와 같다. 선 그래프의 회색 띠는 단계 구간(annotation)이다."
       }
     },
     {
       "id": 1,
       "type": "bargauge",
-      "title": "단계별 처리량 (req/s)",
-      "description": "본 측정 구간의 10초 처리량 값들의 중앙값(실행이 바뀌는 순간의 빈 구간에 덜 흔들린다). 정본은 summary.md 의 k6 요약값",
+      "title": "단계별 처리량 (막대 길이 = 비율, 수치는 k6 요약)",
+      "description": "본 측정 구간의 10초 처리량 값들의 중앙값으로 길이만 그린다. 수치는 summary.md 의 k6 요약값(1,676 / 3,603 / 12,950)",
       "datasource": {
         "type": "prometheus",
         "uid": "prom"
@@ -163,8 +163,8 @@
         "orientation": "horizontal",
         "displayMode": "basic",
         "showUnfilled": true,
-        "valueMode": "color",
-        "namePlacement": "left",
+        "valueMode": "hidden",
+        "namePlacement": "top",
         "sizing": "auto",
         "reduceOptions": {
           "calcs": [
@@ -179,7 +179,7 @@
       "id": 2,
       "type": "bargauge",
       "title": "단계별 p95 응답 시간 (ms, k6)",
-      "description": "본 측정 각 회의 최종 p95(k6 가 실행 시작부터 누적 계산)를 평균한 값",
+      "description": "본 측정 2회 각각의 최종 p95(k6 가 실행 시작부터 누적 계산)의 평균 = 2회 중앙값. summary.md 와 같은 값",
       "datasource": {
         "type": "prometheus",
         "uid": "prom"
@@ -278,7 +278,7 @@
         "displayMode": "basic",
         "showUnfilled": true,
         "valueMode": "color",
-        "namePlacement": "left",
+        "namePlacement": "top",
         "sizing": "auto",
         "reduceOptions": {
           "calcs": [
@@ -293,7 +293,7 @@
       "id": 3,
       "type": "bargauge",
       "title": "단계별 요청 1회당 SQL 수",
-      "description": "앱이 실행한 SQL(Hibernate prepared statement) ÷ /api/problems 요청 수. 워밍업 포함, 시간 범위 전체",
+      "description": "앱이 실행한 SQL(Hibernate prepared statement) ÷ /api/problems 요청 수. 워밍업 포함, 단계 전체(JVM 기동부터)",
       "datasource": {
         "type": "prometheus",
         "uid": "prom"
@@ -311,7 +311,7 @@
             "type": "prometheus",
             "uid": "prom"
           },
-          "expr": "sum by (state) (increase(hibernate_statements_total{status=\"prepared\"}[$__range])) / sum by (state) (increase(http_server_requests_seconds_count{uri=\"/api/problems\"}[$__range]))",
+          "expr": "max by (state) (max_over_time(hibernate_statements_total{status=\"prepared\"}[$__range])) / sum by (state) (max_over_time(http_server_requests_seconds_count{uri=\"/api/problems\"}[$__range]))",
           "legendFormat": "{{state}}",
           "instant": true,
           "range": false
@@ -392,7 +392,7 @@
         "displayMode": "basic",
         "showUnfilled": true,
         "valueMode": "color",
-        "namePlacement": "left",
+        "namePlacement": "top",
         "sizing": "auto",
         "reduceOptions": {
           "calcs": [
@@ -625,7 +625,7 @@
       "id": 6,
       "type": "timeseries",
       "title": "요청 1회당 SQL 수",
-      "description": "15초 구간의 SQL 수 ÷ 요청 수. ① 20 → ② 4 → ③ 0(캐시 적중이면 DB 를 읽지 않는다)",
+      "description": "15초 구간의 SQL 수 ÷ 요청 수. ① 21 → ② 4 → ③ 0(캐시 적중이면 DB 를 읽지 않는다)",
       "datasource": {
         "type": "prometheus",
         "uid": "prom"
