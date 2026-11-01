@@ -50,9 +50,13 @@ services:
       SMTP_PORT: ${SMTP_PORT}
       SMTP_USER: ${SMTP_USER}
       SMTP_PASS: ${SMTP_PASS}
-      # 인증 메일 링크의 앞부분. 프론트와 같은 주소(same-origin)라 CORS 는 비운다
+      # 인증 메일 링크의 앞부분
       APP_BASE_URL: ${APP_BASE_URL:?APP_BASE_URL 이 .env 에 없다}
-      APP_CORS_ORIGINS: ""
+      # 웹 화면은 같은 주소(same-origin)라 CORS 가 필요 없다. 다른 출처는 브라우저 확장 하나뿐이다.
+      # 확장의 요청에는 Origin: chrome-extension://<ID> 가 붙어서, 여기가 비어 있으면 로그인부터 403 이었다(2026-11-01 발견).
+      # ID 는 extension/manifest.json 의 key(공개키)로 고정한 값이라 어느 폴더에서 로드해도 같다.
+      # 모든 확장(chrome-extension://*)을 열지 않는다: 쿠키까지 허용하는 설정이라 아무 확장이나 refresh 쿠키로 토큰을 받아 갈 수 있다
+      APP_CORS_ORIGINS: chrome-extension://dfhfbggmaigglacilpailkkdfplheofp
       ADMIN_EMAIL: ${ADMIN_EMAIL}
       # 비면 AI 요청만 FAILED(AI_UNAVAILABLE)로 끝나고 앱은 돈다
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}

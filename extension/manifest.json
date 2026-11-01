@@ -3,6 +3,7 @@
   "name": "codeXray Saver",
   "version": "0.1.0",
   "description": "프로그래머스 문제 풀이를 codeXray에 원클릭 저장합니다.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtKc8Nsmxw82GfwGnMni4/neJMOPkuTssXGv6EC8cr14EINq6AsxU3syd4rcfuoxGRFu235CtswjAogak6rv7OG2DzMUhr121kDlGiQbQMhxliHf0w8w6AgVFPBVD2+F0+BILGwgzHXtHS8L1LXS/D2tqxhIoKhGhDP1RfZrds89jZJqrX979/+2qzZKZ8O1Lnn6xmXMnrNR/NVJ7UFbMyJ0Z7wHy9IVwKY+VFUFAriJplcHG8CtJaTMT5vmpvL/RkpsO6d27nXrjUMauwWV7tbg+lSn/4OXkDM37kCIlEZIuwcyPkvkVLLW8FqagDDYvX/RxbSdOoG9cSyA4RkHUhQIDAQAB",
   "permissions": ["storage", "scripting"],
   "host_permissions": [
     "https://school.programmers.co.kr/*",

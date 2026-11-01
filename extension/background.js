@@ -106,12 +106,12 @@ async function authFetch(url, opts = {}) {
 }
 
 // 이 문제에 이미 저장된 내 풀이가 있으면 반환 (없으면 null)
+// 목록(/solutions)은 페이지로 바뀌어 첫 페이지 밖의 풀이를 못 찾으므로, 문제별 조회를 쓴다(없으면 204)
 async function findExisting(problemId) {
-  const { res, authFailed } = await authFetch(`${API}/solutions`)
+  const { res, authFailed } = await authFetch(`${API}/solutions/by-problem/${problemId}`)
   if (authFailed) return { authFailed: true }
-  if (!res.ok) return { match: null }
-  const list = await res.json()
-  return { match: list.find((s) => s.problem?.id === problemId) ?? null }
+  if (res.status === 204 || !res.ok) return { match: null }
+  return { match: await res.json() }
 }
 
 // ── 저장 흐름 ──

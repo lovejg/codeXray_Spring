@@ -18,7 +18,7 @@
 ## 주소
 운영 사이트(https://codexray.org)를 가리킵니다. 화면과 API가 같은 주소(nginx가 `/api`만 백엔드로 넘김)라 API 도메인을 따로 두지 않습니다.
 
-로컬 백엔드로 개발할 때는 **2곳**을 함께 바꿉니다:
+로컬 백엔드로 개발할 때는 **2곳**을 함께 바꿉니다(백엔드 CORS 설정은 아래 "확장 ID와 CORS"):
 ```js
 // config.js
 var CODEXRAY_API = 'http://localhost:8080/api'
@@ -28,6 +28,12 @@ var CODEXRAY_APP_ORIGIN = 'http://localhost:5173'
 // manifest.json host_permissions
 "http://localhost:8080/*"
 ```
+
+## 확장 ID와 CORS
+확장이 보내는 요청에는 `Origin: chrome-extension://<확장 ID>`가 붙고, 백엔드는 허용 목록(`APP_CORS_ORIGINS`)에 없는 출처를 403으로 막습니다.
+압축해제 로드는 보통 폴더 경로에 따라 ID가 바뀌는데, `manifest.json`의 `key`(공개키)로 **`dfhfbggmaigglacilpailkkdfplheofp`에 고정**해 두었습니다. 운영은 `deploy/compose.yml`에서 이 ID 하나만 허용합니다(모든 확장을 열면 아무 확장이나 refresh 쿠키로 토큰을 받아 갈 수 있어서).
+로컬 백엔드로 개발할 때는 `backend/.env`에 `APP_CORS_ORIGINS=chrome-extension://dfhfbggmaigglacilpailkkdfplheofp`를 넣습니다.
+`key`를 바꾸거나 지우면 ID가 달라져 로그인이 403이 됩니다. 크롬 웹 스토어에 올릴 때는 스토어가 정한 ID로 허용 목록을 바꿉니다.
 
 ## 알아둘 점
 - 팝업 로그인은 이메일·비밀번호 방식만 됩니다. Google/네이버로 가입한 계정은 비밀번호가 없어서 확장에 로그인할 수 없습니다.
