@@ -7,3 +7,6 @@ dist-ssr
 .env
 .env.*
 !.env.example
+
+# tsc -b 가 빌드할 때마다 고쳐 쓰는 파일
+*.tsbuildinfo
