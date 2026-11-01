@@ -1,0 +1,608 @@
+{
+  "conditions": {
+    "network": {
+      "offline": false,
+      "latency": 150,
+      "downloadThroughput": 200000,
+      "uploadThroughput": 93750
+    },
+    "cpuSlowdown": 4,
+    "runs": 5,
+    "viewport": "1280x800",
+    "browser": "Chromium (Playwright 1.49.1)"
+  },
+  "results": [
+    {
+      "target": "1-before",
+      "path": "/",
+      "fcpMs": 9785,
+      "lcpMs": 9888,
+      "jsKB": 1741,
+      "jsFiles": 1,
+      "encodings": [
+        "none"
+      ],
+      "runs": [
+        {
+          "fcp": 9807.89999999106,
+          "lcp": 9929.5,
+          "jsKB": 1741,
+          "jsFiles": 1,
+          "encodings": [
+            "none"
+          ]
+        },
+        {
+          "fcp": 9783.5,
+          "lcp": 9888.10000000894,
+          "jsKB": 1741,
+          "jsFiles": 1,
+          "encodings": [
+            "none"
+          ]
+        },
+        {
+          "fcp": 9785,
+          "lcp": 9885.79999999702,
+          "jsKB": 1741,
+          "jsFiles": 1,
+          "encodings": [
+            "none"
+          ]
+        },
+        {
+          "fcp": 9799.29999999702,
+          "lcp": 9901.09999999404,
+          "jsKB": 1741,
+          "jsFiles": 1,
+          "encodings": [
+            "none"
+          ]
+        },
+        {
+          "fcp": 9774.20000000298,
+          "lcp": 9875.40000000596,
+          "jsKB": 1741,
+          "jsFiles": 1,
+          "encodings": [
+            "none"
+          ]
+        }
+      ]
+    },
+    {
+      "target": "1-before",
+      "path": "/problems",
+      "fcpMs": 9784,
+      "lcpMs": 9881,
+      "jsKB": 1741,
+      "jsFiles": 1,
+      "encodings": [
+        "none"
+      ],
+      "runs": [
+        {
+          "fcp": 9820.39999999106,
+          "lcp": 9932.5,
+          "jsKB": 1741,
+          "jsFiles": 1,
+          "encodings": [
+            "none"
+          ]
+        },
+        {
+          "fcp": 9869.39999999106,
+          "lcp": 9869.39999999106,
+          "jsKB": 1741,
+          "jsFiles": 1,
+          "encodings": [
+            "none"
+          ]
+        },
+        {
+          "fcp": 9783.20000000298,
+          "lcp": 9881.09999999404,
+          "jsKB": 1741,
+          "jsFiles": 1,
+          "encodings": [
+            "none"
+          ]
+        },
+        {
+          "fcp": 9775.800000011921,
+          "lcp": 9874.70000000298,
+          "jsKB": 1741,
+          "jsFiles": 1,
+          "encodings": [
+            "none"
+          ]
+        },
+        {
+          "fcp": 9783.79999999702,
+          "lcp": 9882.20000000298,
+          "jsKB": 1741,
+          "jsFiles": 1,
+          "encodings": [
+            "none"
+          ]
+        }
+      ]
+    },
+    {
+      "target": "2-gzip",
+      "path": "/",
+      "fcpMs": 3569,
+      "lcpMs": 3678,
+      "jsKB": 570,
+      "jsFiles": 1,
+      "encodings": [
+        "gzip"
+      ],
+      "runs": [
+        {
+          "fcp": 3564.300000011921,
+          "lcp": 3665.4000000059605,
+          "jsKB": 570,
+          "jsFiles": 1,
+          "encodings": [
+            "gzip"
+          ]
+        },
+        {
+          "fcp": 3569.2000000029802,
+          "lcp": 3674,
+          "jsKB": 570,
+          "jsFiles": 1,
+          "encodings": [
+            "gzip"
+          ]
+        },
+        {
+          "fcp": 3573.9000000059605,
+          "lcp": 3678.300000011921,
+          "jsKB": 570,
+          "jsFiles": 1,
+          "encodings": [
+            "gzip"
+          ]
+        },
+        {
+          "fcp": 3567.0999999940395,
+          "lcp": 3690.699999988079,
+          "jsKB": 570,
+          "jsFiles": 1,
+          "encodings": [
+            "gzip"
+          ]
+        },
+        {
+          "fcp": 3586,
+          "lcp": 3689.2999999970198,
+          "jsKB": 570,
+          "jsFiles": 1,
+          "encodings": [
+            "gzip"
+          ]
+        }
+      ]
+    },
+    {
+      "target": "2-gzip",
+      "path": "/problems",
+      "fcpMs": 3566,
+      "lcpMs": 3665,
+      "jsKB": 570,
+      "jsFiles": 1,
+      "encodings": [
+        "gzip"
+      ],
+      "runs": [
+        {
+          "fcp": 3565.2000000029802,
+          "lcp": 3663.6000000089407,
+          "jsKB": 570,
+          "jsFiles": 1,
+          "encodings": [
+            "gzip"
+          ]
+        },
+        {
+          "fcp": 3566.300000011921,
+          "lcp": 3663.800000011921,
+          "jsKB": 570,
+          "jsFiles": 1,
+          "encodings": [
+            "gzip"
+          ]
+        },
+        {
+          "fcp": 3560.4000000059605,
+          "lcp": 3665,
+          "jsKB": 570,
+          "jsFiles": 1,
+          "encodings": [
+            "gzip"
+          ]
+        },
+        {
+          "fcp": 3584.3999999910593,
+          "lcp": 3703.3999999910593,
+          "jsKB": 570,
+          "jsFiles": 1,
+          "encodings": [
+            "gzip"
+          ]
+        },
+        {
+          "fcp": 3577.2999999970198,
+          "lcp": 3681.5999999940395,
+          "jsKB": 570,
+          "jsFiles": 1,
+          "encodings": [
+            "gzip"
+          ]
+        }
+      ]
+    },
+    {
+      "target": "3-split",
+      "path": "/",
+      "fcpMs": 1034,
+      "lcpMs": 1137,
+      "jsKB": 111,
+      "jsFiles": 1,
+      "encodings": [
+        "gzip"
+      ],
+      "runs": [
+        {
+          "fcp": 1041.8999999910593,
+          "lcp": 1145.7000000029802,
+          "jsKB": 111,
+          "jsFiles": 1,
+          "encodings": [
+            "gzip"
+          ]
+        },
+        {
+          "fcp": 1037.1000000089407,
+          "lcp": 1140.2999999970198,
+          "jsKB": 111,
+          "jsFiles": 1,
+          "encodings": [
+            "gzip"
+          ]
+        },
+        {
+          "fcp": 1033.5,
+          "lcp": 1136.9000000059605,
+          "jsKB": 111,
+          "jsFiles": 1,
+          "encodings": [
+            "gzip"
+          ]
+        },
+        {
+          "fcp": 1032.5,
+          "lcp": 1135.6000000089407,
+          "jsKB": 111,
+          "jsFiles": 1,
+          "encodings": [
+            "gzip"
+          ]
+        },
+        {
+          "fcp": 1033.1000000089407,
+          "lcp": 1137.2999999970198,
+          "jsKB": 111,
+          "jsFiles": 1,
+          "encodings": [
+            "gzip"
+          ]
+        }
+      ]
+    },
+    {
+      "target": "3-split",
+      "path": "/problems",
+      "fcpMs": 1042,
+      "lcpMs": 1485,
+      "jsKB": 121,
+      "jsFiles": 11,
+      "encodings": [
+        "gzip",
+        "none"
+      ],
+      "runs": [
+        {
+          "fcp": 1041.7999999970198,
+          "lcp": 1484.5,
+          "jsKB": 121,
+          "jsFiles": 11,
+          "encodings": [
+            "gzip",
+            "none"
+          ]
+        },
+        {
+          "fcp": 1034.6000000089407,
+          "lcp": 1470.800000011921,
+          "jsKB": 121,
+          "jsFiles": 11,
+          "encodings": [
+            "gzip",
+            "none"
+          ]
+        },
+        {
+          "fcp": 1035.5,
+          "lcp": 1468,
+          "jsKB": 121,
+          "jsFiles": 11,
+          "encodings": [
+            "gzip",
+            "none"
+          ]
+        },
+        {
+          "fcp": 1046.9000000059605,
+          "lcp": 1486.7000000029802,
+          "jsKB": 121,
+          "jsFiles": 11,
+          "encodings": [
+            "gzip",
+            "none"
+          ]
+        },
+        {
+          "fcp": 1045.3999999910593,
+          "lcp": 1490.8999999910593,
+          "jsKB": 121,
+          "jsFiles": 11,
+          "encodings": [
+            "gzip",
+            "none"
+          ]
+        }
+      ]
+    },
+    {
+      "target": "4-proxy-nogzip",
+      "path": "/",
+      "fcpMs": 2405,
+      "lcpMs": 2511,
+      "jsKB": 340,
+      "jsFiles": 1,
+      "encodings": [
+        "none"
+      ],
+      "runs": [
+        {
+          "fcp": 2400.2000000029802,
+          "lcp": 2507.4000000059605,
+          "jsKB": 340,
+          "jsFiles": 1,
+          "encodings": [
+            "none"
+          ]
+        },
+        {
+          "fcp": 2402,
+          "lcp": 2506.5,
+          "jsKB": 340,
+          "jsFiles": 1,
+          "encodings": [
+            "none"
+          ]
+        },
+        {
+          "fcp": 2404.5,
+          "lcp": 2510.5999999940395,
+          "jsKB": 340,
+          "jsFiles": 1,
+          "encodings": [
+            "none"
+          ]
+        },
+        {
+          "fcp": 2405.2000000029802,
+          "lcp": 2511.4000000059605,
+          "jsKB": 340,
+          "jsFiles": 1,
+          "encodings": [
+            "none"
+          ]
+        },
+        {
+          "fcp": 2408.2999999970198,
+          "lcp": 2518.3999999910593,
+          "jsKB": 340,
+          "jsFiles": 1,
+          "encodings": [
+            "none"
+          ]
+        }
+      ]
+    },
+    {
+      "target": "4-proxy-nogzip",
+      "path": "/problems",
+      "fcpMs": 2402,
+      "lcpMs": 2856,
+      "jsKB": 355,
+      "jsFiles": 11,
+      "encodings": [
+        "none"
+      ],
+      "runs": [
+        {
+          "fcp": 2410.300000011921,
+          "lcp": 2858.2000000029802,
+          "jsKB": 355,
+          "jsFiles": 11,
+          "encodings": [
+            "none"
+          ]
+        },
+        {
+          "fcp": 2415.7000000029802,
+          "lcp": 2857.7999999970198,
+          "jsKB": 355,
+          "jsFiles": 11,
+          "encodings": [
+            "none"
+          ]
+        },
+        {
+          "fcp": 2401.5,
+          "lcp": 2850.8999999910593,
+          "jsKB": 355,
+          "jsFiles": 11,
+          "encodings": [
+            "none"
+          ]
+        },
+        {
+          "fcp": 2399.7000000029802,
+          "lcp": 2850.1000000089407,
+          "jsKB": 355,
+          "jsFiles": 11,
+          "encodings": [
+            "none"
+          ]
+        },
+        {
+          "fcp": 2401.2999999970198,
+          "lcp": 2855.7999999970198,
+          "jsKB": 355,
+          "jsFiles": 11,
+          "encodings": [
+            "none"
+          ]
+        }
+      ]
+    },
+    {
+      "target": "5-proxy",
+      "path": "/",
+      "fcpMs": 1040,
+      "lcpMs": 1142,
+      "jsKB": 111,
+      "jsFiles": 1,
+      "encodings": [
+        "gzip"
+      ],
+      "runs": [
+        {
+          "fcp": 1040.7000000029802,
+          "lcp": 1146.0999999940395,
+          "jsKB": 111,
+          "jsFiles": 1,
+          "encodings": [
+            "gzip"
+          ]
+        },
+        {
+          "fcp": 1128.7999999970198,
+          "lcp": 1128.7999999970198,
+          "jsKB": 111,
+          "jsFiles": 1,
+          "encodings": [
+            "gzip"
+          ]
+        },
+        {
+          "fcp": 1034.9000000059605,
+          "lcp": 1141.7000000029802,
+          "jsKB": 111,
+          "jsFiles": 1,
+          "encodings": [
+            "gzip"
+          ]
+        },
+        {
+          "fcp": 1040.2999999970198,
+          "lcp": 1161.7000000029802,
+          "jsKB": 111,
+          "jsFiles": 1,
+          "encodings": [
+            "gzip"
+          ]
+        },
+        {
+          "fcp": 1036,
+          "lcp": 1139.2999999970198,
+          "jsKB": 111,
+          "jsFiles": 1,
+          "encodings": [
+            "gzip"
+          ]
+        }
+      ]
+    },
+    {
+      "target": "5-proxy",
+      "path": "/problems",
+      "fcpMs": 1034,
+      "lcpMs": 1477,
+      "jsKB": 121,
+      "jsFiles": 11,
+      "encodings": [
+        "gzip",
+        "none"
+      ],
+      "runs": [
+        {
+          "fcp": 1038.2000000029802,
+          "lcp": 1477.6000000089407,
+          "jsKB": 121,
+          "jsFiles": 11,
+          "encodings": [
+            "gzip",
+            "none"
+          ]
+        },
+        {
+          "fcp": 1034.2000000029802,
+          "lcp": 1468.0999999940395,
+          "jsKB": 121,
+          "jsFiles": 11,
+          "encodings": [
+            "gzip",
+            "none"
+          ]
+        },
+        {
+          "fcp": 1034.5,
+          "lcp": 1478.3999999910593,
+          "jsKB": 121,
+          "jsFiles": 11,
+          "encodings": [
+            "gzip",
+            "none"
+          ]
+        },
+        {
+          "fcp": 1033.0999999940395,
+          "lcp": 1476.8999999910593,
+          "jsKB": 121,
+          "jsFiles": 11,
+          "encodings": [
+            "gzip",
+            "none"
+          ]
+        },
+        {
+          "fcp": 1029.5,
+          "lcp": 1469.9000000059605,
+          "jsKB": 121,
+          "jsFiles": 11,
+          "encodings": [
+            "gzip",
+            "none"
+          ]
+        }
+      ]
+    }
+  ]
+}
