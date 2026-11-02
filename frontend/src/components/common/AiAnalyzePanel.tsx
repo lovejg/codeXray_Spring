@@ -1,34 +1,26 @@
-import { useState } from 'react'
 import { Sparkles } from 'lucide-react'
-import { aiApi, pollAiJob, type AiTask } from '../../api/ai'
-import { aiErrorText, aiJobFailText } from '../../lib/apiError'
+import { aiApi, type AiTask } from '../../api/ai'
+import { useAiJob } from '../../hooks/useAiJob'
 import Markdown from './Markdown'
 
 // 풀이 코드를 Claude 로 분석(최적화/설명). 하루 한도 초과 시 429 안내.
-export default function AiAnalyzePanel({ code, language, problemTitle }: { code: string; language?: string; problemTitle?: string }) {
-  const [result, setResult] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [task, setTask] = useState<AiTask>('EXPLAIN')
+// 마지막 분석은 풀이별로 기억해 두어, 새로고침하거나 다시 들어와도 결과(또는 진행 중인 분석)를 이어서 본다
+export default function AiAnalyzePanel({
+  solutionId,
+  code,
+  language,
+  problemTitle,
+}: {
+  solutionId: number
+  code: string
+  language?: string
+  problemTitle?: string
+}) {
+  const { result, loading, error, meta, start } = useAiJob(`ai-job:analyze:${solutionId}`, 'AI 분석에 실패했습니다.')
+  const task: AiTask = meta === 'OPTIMIZE' ? 'OPTIMIZE' : 'EXPLAIN'
 
-  async function run(t: AiTask) {
-    setTask(t)
-    setLoading(true)
-    setError('')
-    setResult('')
-    try {
-      const created = await aiApi.analyze({ task: t, code, language, problemTitle })
-      const job = await pollAiJob(created.id) // 컨슈머가 처리 완료할 때까지 폴링
-      if (job.status === 'DONE') {
-        setResult(job.result ?? '')
-      } else {
-        setError(aiJobFailText(job.errorCode, 'AI 분석에 실패했습니다.'))
-      }
-    } catch (err) {
-      setError(aiErrorText(err, 'AI 분석에 실패했습니다.'))
-    } finally {
-      setLoading(false)
-    }
+  function run(t: AiTask) {
+    void start(() => aiApi.analyze({ task: t, code, language, problemTitle }), t)
   }
 
   return (
@@ -47,7 +39,7 @@ export default function AiAnalyzePanel({ code, language, problemTitle }: { code:
       </div>
       <p className="mt-1 text-[11px] text-slate-500">하루 2회 제한 · {task === 'EXPLAIN' ? '설명' : '최적화'}</p>
 
-      {loading && <p className="mt-3 text-sm text-slate-400">분석 중… (수 초 소요)</p>}
+      {loading && <p className="mt-3 text-sm text-slate-400">분석 중… (수 초 소요, 페이지를 떠나도 계속 진행돼요)</p>}
       {error && <p className="mt-3 text-sm text-rose-400">{error}</p>}
       {result && (
         <div className="mt-3 rounded-lg border border-slate-800 bg-slate-950/40 p-3">
