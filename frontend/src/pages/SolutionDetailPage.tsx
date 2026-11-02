@@ -64,7 +64,7 @@ export default function SolutionDetailPage() {
 
       <div className="mt-5 space-y-4">
         <CodeBlock code={s.code} language={s.language} />
-        <AiAnalyzePanel code={s.code} language={s.language} problemTitle={s.problem.title} />
+        <AiAnalyzePanel solutionId={s.id} code={s.code} language={s.language} problemTitle={s.problem.title} />
 
         {hasMemo && (
           <div className="glass-card p-5 text-sm">

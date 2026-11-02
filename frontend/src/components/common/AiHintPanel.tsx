@@ -1,33 +1,17 @@
 import { useState } from 'react'
 import { Lightbulb } from 'lucide-react'
-import { aiApi, pollAiJob } from '../../api/ai'
-import { aiErrorText, aiJobFailText } from '../../lib/apiError'
+import { aiApi } from '../../api/ai'
+import { useAiJob } from '../../hooks/useAiJob'
 import Markdown from './Markdown'
 
 // 문제가 안 풀릴 때, 정답 코드 없이 단계별 힌트를 받는 패널. 하루 한도 공유.
+// 마지막 힌트는 문제별로 기억해 두어, 새로고침하거나 다시 들어와도 이어서 본다
 export default function AiHintPanel({ problemId }: { problemId: number }) {
   const [partialCode, setPartialCode] = useState('')
-  const [result, setResult] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const { result, loading, error, start } = useAiJob(`ai-job:hint:${problemId}`, 'AI 힌트에 실패했습니다.')
 
-  async function run() {
-    setLoading(true)
-    setError('')
-    setResult('')
-    try {
-      const created = await aiApi.hint({ problemId, partialCode: partialCode.trim() || undefined })
-      const job = await pollAiJob(created.id) // 컨슈머 처리 완료까지 폴링
-      if (job.status === 'DONE') {
-        setResult(job.result ?? '')
-      } else {
-        setError(aiJobFailText(job.errorCode, 'AI 힌트에 실패했습니다.'))
-      }
-    } catch (err) {
-      setError(aiErrorText(err, 'AI 힌트에 실패했습니다.'))
-    } finally {
-      setLoading(false)
-    }
+  function run() {
+    void start(() => aiApi.hint({ problemId, partialCode: partialCode.trim() || undefined }))
   }
 
   return (
@@ -56,7 +40,7 @@ export default function AiHintPanel({ problemId }: { problemId: number }) {
         />
       </details>
 
-      {loading && <p className="mt-3 text-sm text-slate-400">힌트 생성 중… (수 초 소요)</p>}
+      {loading && <p className="mt-3 text-sm text-slate-400">힌트 생성 중… (수 초 소요, 페이지를 떠나도 계속 진행돼요)</p>}
       {error && <p className="mt-3 text-sm text-rose-400">{error}</p>}
       {result && (
         <div className="mt-3 rounded-lg border border-slate-800 bg-slate-950/40 p-3">
