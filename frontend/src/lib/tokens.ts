@@ -16,7 +16,12 @@ function storage(): Storage | null {
   }
 }
 
-storage()?.removeItem(LEGACY_TOKEN_KEY)
+// 예전 버전으로 로그인해 둔 사용자는 표시가 없고 토큰만 있다. 이 배포로 로그아웃되지 않게 표시로 바꿔 두고 토큰은 지운다
+const legacy = storage()
+if (legacy?.getItem(LEGACY_TOKEN_KEY)) {
+  legacy.setItem(SESSION_HINT_KEY, '1')
+  legacy.removeItem(LEGACY_TOKEN_KEY)
+}
 
 export const getAccessToken = () => accessToken
 
