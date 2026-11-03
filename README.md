@@ -256,7 +256,7 @@ codeXray에서는 풀이와 메모(틀린 이유, 로직, 핵심 함수)를 문�
 
 ## 동시성과 정합성
 
-코드를 다시 읽으며 동시에 들어오는 요청에서 깨지는 곳을 찾아 고쳤다. 각각 테스트가 함께 들어갔다.
+코드를 다시 읽으며 동시에 들어오는 요청에서 깨지는 곳을 찾아 고쳤다. 괄호 안은 그 동작을 확인하는 테스트다. 체감 난이도 잠금과 캐시 `sync`는 아직 테스트가 없다.
 
 **Kafka가 같은 AI 요청을 두 번 주면 Claude가 두 번 불렸다.**
 컨슈머가 잡을 읽고 바로 Claude를 불렀다. 재전달이나 재시도로 같은 메시지가 두 번 오면 비용도 두 번 나갔다.
@@ -344,7 +344,7 @@ cd ../frontend && npm install && npm run dev   # http://localhost:5173 (/api 는
 
 측정과 캡처 스크립트는 별도 컨테이너(`perf/compose.yml`)를 써서 개발 DB를 건드리지 않는다.
 
-테스트는 `cd backend && ./gradlew test`(47개). 쿼리 수, 페이지, 탈퇴 정리, 토큰 동시성 테스트는 실제 PostgreSQL과 Redis가 필요하다.
+테스트는 `cd backend && ./gradlew test`(49개). 쿼리 수, 페이지, 탈퇴 정리, 토큰 동시성 테스트는 실제 PostgreSQL과 Redis가 필요하다.
 
 | 무엇을 | 테스트 |
 | --- | --- |
@@ -356,6 +356,7 @@ cd ../frontend && npm install && npm run dev   # http://localhost:5173 (/api 는
 | 탈퇴 시 데이터 정리(FK) | `AiJobUserCascadeTest` |
 | 커뮤니티 페이지와 추천순 | `CommunityPostPageTest` |
 | 오류 응답 코드(400/401/404/500) | `GlobalExceptionHandlerTest` |
+| 대시보드 날짜를 한국 시간으로 자르기 | `StatsServiceKstDateTest` |
 
 ## 문서
 
