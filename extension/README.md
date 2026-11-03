@@ -1,6 +1,6 @@
 # codeXray Saver (브라우저 확장)
 
-프로그래머스 문제 페이지에서 풀이를 codeXray에 원클릭 저장하는 크롬 확장(Manifest V3).
+프로그래머스 문제 페이지에서 풀이를 codeXray에 원클릭 저장하는 크롬 확장(Manifest V3)입니다.
 
 ## 설치 (개발자 모드)
 1. `chrome://extensions` → 개발자 모드 켜기

@@ -1,7 +1,7 @@
 # perf — 성능 측정
 
-README의 성능 숫자를 **누가 다시 재도 같은 방법으로 나오게** 하려고 만든 폴더다.
-예전 측정은 조건을 글로만 남겨 다시 잴 때 값이 1.6~2.3배씩 달라졌다(2026-07 → 08 → 09). 여기서는 조건을 스크립트와 설정 파일로 고정하고, 원본 결과를 `results/`에 그대로 남긴다.
+README의 성능 숫자를 **누가 다시 재도 같은 방법으로 나오게** 하려고 만든 폴더입니다.
+예전 측정은 조건을 글로만 남겨 다시 잴 때 값이 1.6~2.3배씩 달라졌습니다(2026-07 → 08 → 09). 여기서는 조건을 스크립트와 설정 파일로 고정하고, 원본 결과를 `results/`에 그대로 남깁니다.
 
 | 무엇을 | 스크립트 | 결과 |
 |---|---|---|
@@ -17,8 +17,8 @@ STATES="3-cache" perf/run-backend.sh   # 한 단계만
 ```
 
 하는 일
-1. `perf/compose.yml`로 측정 전용 Postgres(55432)·Redis(56379)·Prometheus(9390)·Grafana(3300)를 띄운다. 개발용 `codexray-db`/`codexray-redis`와 섞이지 않는다.
-2. 단계마다 **지금 커밋을 임시 worktree로 꺼내 패치를 적용**하고 jar를 새로 만든다. 운영 코드에 측정용 스위치를 두지 않으려는 것이다.
+1. `perf/compose.yml`로 측정 전용 Postgres(55432)·Redis(56379)·Prometheus(9390)·Grafana(3300)를 띄웁니다. 개발용 `codexray-db`/`codexray-redis`와 섞이지 않습니다.
+2. 단계마다 **지금 커밋을 임시 worktree로 꺼내 패치를 적용**하고 jar를 새로 만듭니다. 운영 코드에 측정용 스위치를 두지 않으려는 것입니다.
 
    | 단계 | 코드 | 패치 |
    |---|---|---|
@@ -26,16 +26,16 @@ STATES="3-cache" perf/run-backend.sh   # 한 단계만
    | `2-batch` ② | 목록 `@Cacheable` 없음 | `states/2-batch.patch` |
    | `3-cache` ③ | 지금 코드 그대로 | — |
 
-3. Redis를 비우고 JVM을 새로 띄운 뒤(`perf` 프로필) 30초 쉬고, k6로 **워밍업 30초(버림) + 본 측정 30초 × 2**.
-4. k6 원본 요약(`<단계>-run<n>.json`), 측정 후 Redis 키 수와 요청당 SQL 수(`<단계>-server.json`)를 남기고 `summarize.py`가 `summary.md`를 만든다.
+3. Redis를 비우고 JVM을 새로 띄운 뒤(`perf` 프로필) 30초 쉬고, k6로 **워밍업 30초(버림) + 본 측정 30초 × 2**를 돌립니다.
+4. k6 원본 요약(`<단계>-run<n>.json`), 측정 후 Redis 키 수와 요청당 SQL 수(`<단계>-server.json`)를 남기고 `summarize.py`가 `summary.md`를 만듭니다.
 
 고정한 조건(`backend/src/main/resources/application-perf.yml`, `run-backend.sh`)
 - 대상 `GET /api/problems?page=0&size=50&sort=createdAt,desc`, k6 50 VU, think-time 0(포화 부하)
-- SQL 로그 끔(켜면 개선 전 단계만 3배 느려져 배수가 부풀려진다), Hibernate 통계 켬(요청당 SQL 수를 세려고. 세 단계 모두 같은 조건)
-- 앱은 `java -jar`로 띄우고 Gradle 데몬을 끈다(`bootRun`은 데몬이 측정 내내 CPU·메모리를 나눠 써서 32% 낮게 나왔다)
-- 모든 지표에 `state` 라벨 → Grafana가 세 단계를 **같은 축**에 색만 바꿔 그린다
+- SQL 로그 끔(켜면 개선 전 단계만 3배 느려져 배수가 부풀려집니다), Hibernate 통계 켬(요청당 SQL 수를 세려고. 세 단계 모두 같은 조건)
+- 앱은 `java -jar`로 띄우고 Gradle 데몬을 끕니다(`bootRun`은 데몬이 측정 내내 CPU·메모리를 나눠 써서 32% 낮게 나왔습니다)
+- 모든 지표에 `state` 라벨 → Grafana가 세 단계를 **같은 축**에 색만 바꿔 그립니다
 
-Grafana: `http://localhost:3300/d/codexray-perf` (로그인 없음, 로컬 전용). 측정이 끝나면 그 실행의 시간 범위가 들어간 주소가 `results/<시각>/grafana-url.txt`에 남는다. 이미지로 남기려면:
+Grafana: `http://localhost:3300/d/codexray-perf` (로그인 없음, 로컬 전용). 측정이 끝나면 그 실행의 시간 범위가 들어간 주소가 `results/<시각>/grafana-url.txt`에 남습니다. 이미지로 남기려면:
 
 ```bash
 docker run --rm --network host --ipc=host -v "$PWD/perf/browser:/work" -v "$PWD/perf/results:/results" -w /work \
@@ -56,14 +56,14 @@ perf/run-frontend.sh    # 이미지 4개 빌드 + 측정, 약 10분
 | `4-proxy-nogzip` | 지금 코드에서 `gzip_http_version 1.0`만 뺀 것을 HTTP/1.0으로 넘기는 nginx 뒤에 둠 — 배포 직후 운영에서 압축이 빠졌던 상황 |
 | `5-proxy` | 지금 코드를 같은 프록시 뒤에 둠 — 고친 뒤의 운영 경로 |
 
-조건: Playwright Chromium, 매번 새 브라우저 컨텍스트(캐시 없음), 지연 150ms·내려받기 1.6Mbps·올리기 750kbps, CPU 4배 감속, 경우·화면마다 5회 중앙값. 백엔드 없이 화면 이미지만 띄운다.
-`headers.txt`에 경우마다 메인 JS의 `Content-Encoding`과 실제 전송 크기를 남긴다(HTTP/1.0 문제의 직접 증거).
+조건: Playwright Chromium, 매번 새 브라우저 컨텍스트(캐시 없음), 지연 150ms·내려받기 1.6Mbps·올리기 750kbps, CPU 4배 감속, 경우·화면마다 5회 중앙값입니다. 백엔드 없이 화면 이미지만 띄웁니다.
+`headers.txt`에 경우마다 메인 JS의 `Content-Encoding`과 실제 전송 크기를 남깁니다(HTTP/1.0 문제의 직접 증거).
 
 ## 결과를 옮겨 쓸 때 지킬 것
 
-- **숫자의 정본은 `summary.md`(원본 JSON에서 계산)다.** Grafana 막대 중 p95·요청당 SQL 은 같은 값이 나오게 쿼리를 맞췄다(SQL 은 단계마다 JVM 을 새로 띄워 카운터가 0 에서 시작하므로 마지막 값끼리 나눈다. `increase()` 는 구간 끝을 추정해 20.86 처럼 어긋났다).
-  처리량은 k6 요약값이 "요청 수 ÷ k6 가 잰 실행 시간(약 28초)"이라 Prometheus 구간 값으로는 똑같이 못 만든다(10초 구간 중앙값은 약 7% 낮았다). 그래서 처리량 막대는 숫자를 숨기고 길이만 보여 준다.
-- 로컬 한 대에서 앱·DB·부하 도구가 CPU를 나눠 쓴 값이다. **운영 서버의 처리량이 아니다.** 절대값보다 같은 조건에서의 배수를 본다.
-- ③은 같은 요청(같은 캐시 키)만 반복한 값이라 **캐시 적중률이 사실상 100%**다. 실제 서비스의 적중률이 아니다.
-- 화면 측정은 로컬 이미지 + 네트워크 흉내다. `4-proxy-nogzip`/`5-proxy`도 운영 경로를 **재현**한 것이지 운영 실측이 아니다.
-- 다시 재면 절대값은 달라진다. 새로 재면 슬라이드·README의 숫자도 그 실행의 `summary.md`로 바꾼다. 다른 실행의 숫자를 섞지 않는다.
+- **숫자의 정본은 `summary.md`(원본 JSON에서 계산)입니다.** Grafana 막대 중 p95·요청당 SQL 은 같은 값이 나오게 쿼리를 맞췄습니다(SQL 은 단계마다 JVM 을 새로 띄워 카운터가 0 에서 시작하므로 마지막 값끼리 나눕니다. `increase()` 는 구간 끝을 추정해 20.86 처럼 어긋났습니다).
+  처리량은 k6 요약값이 "요청 수 ÷ k6 가 잰 실행 시간(약 28초)"이라 Prometheus 구간 값으로는 똑같이 만들 수 없습니다(10초 구간 중앙값은 약 7% 낮았습니다). 그래서 처리량 막대는 숫자를 숨기고 길이만 보여 줍니다.
+- 로컬 한 대에서 앱·DB·부하 도구가 CPU를 나눠 쓴 값입니다. **운영 서버의 처리량이 아닙니다.** 절대값보다 같은 조건에서의 배수를 봅니다.
+- ③은 같은 요청(같은 캐시 키)만 반복한 값이라 **캐시 적중률이 사실상 100%**입니다. 실제 서비스의 적중률이 아닙니다.
+- 화면 측정은 로컬 이미지 + 네트워크 흉내입니다. `4-proxy-nogzip`/`5-proxy`도 운영 경로를 **재현**한 것이지 운영 실측이 아닙니다.
+- 다시 재면 절대값은 달라집니다. 새로 재면 슬라이드·README의 숫자도 그 실행의 `summary.md`로 바꿉니다. 다른 실행의 숫자를 섞지 않습니다.

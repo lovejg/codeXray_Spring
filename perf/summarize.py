@@ -52,7 +52,7 @@ def main(folder: Path) -> None:
     lines = [
         "# 문제 목록 API 성능 측정 결과",
         "",
-        "perf/summarize.py 가 원본 파일(`*-run*.json`, `*-server.json`)에서 만든 표다. 측정 조건은 `env.txt`.",
+        "perf/summarize.py 가 원본 파일(`*-run*.json`, `*-server.json`)에서 만든 표입니다. 측정 조건은 `env.txt`에 있습니다.",
         "",
         "| 단계 | 처리량 (req/s, 중앙값) | p95 (ms) | p99 (ms) | 요청당 SQL | 측정 후 Redis 키 | ① 대비 처리량 |",
         "|---|---|---|---|---|---|---|",
