@@ -88,7 +88,7 @@ out = Path(sys.argv[1])
 rows = json.loads((out / "fcp.json").read_text())["results"]
 label = {"1-before": "① 고치기 전", "2-gzip": "② gzip", "3-split": "③ gzip + 화면 나누기",
          "4-proxy-nogzip": "운영 경로 재현: 고치기 전(HTTP/1.0 프록시, 압축 빠짐)", "5-proxy": "운영 경로 재현: 고친 뒤"}
-lines = ["# 화면 첫 로딩 측정 결과", "", "perf/run-frontend.sh 가 원본(fcp.json)에서 만든 표. 조건: 느린 4G(150ms·1.6Mbps/750kbps), CPU 4배 감속, 캐시 없음, 5회 중앙값.", "",
+lines = ["# 화면 첫 로딩 측정 결과", "", "perf/run-frontend.sh 가 원본(fcp.json)에서 만든 표입니다. 조건: 느린 4G(150ms·1.6Mbps/750kbps), CPU 4배 감속, 캐시 없음, 5회 중앙값.", "",
          "| 경우 | 화면 | 받은 JS | JS 압축 | FCP | LCP |", "|---|---|---|---|---|---|"]
 for r in rows:
     lines.append(f"| {label.get(r['target'], r['target'])} | `{r['path']}` | {r['jsKB']:,} KB ({r['jsFiles']}개) | {'/'.join(r['encodings'])} | {r['fcpMs']:,} ms | {r['lcpMs']:,} ms |")

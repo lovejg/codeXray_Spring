@@ -1,6 +1,6 @@
 # 화면 첫 로딩 측정 결과
 
-perf/run-frontend.sh 가 원본(fcp.json)에서 만든 표. 조건: 느린 4G(150ms·1.6Mbps/750kbps), CPU 4배 감속, 캐시 없음, 5회 중앙값.
+perf/run-frontend.sh 가 원본(fcp.json)에서 만든 표입니다. 조건: 느린 4G(150ms·1.6Mbps/750kbps), CPU 4배 감속, 캐시 없음, 5회 중앙값.
 
 | 경우 | 화면 | 받은 JS | JS 압축 | FCP | LCP |
 |---|---|---|---|---|---|
